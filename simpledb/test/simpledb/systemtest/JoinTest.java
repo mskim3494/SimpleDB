@@ -50,7 +50,6 @@ public class JoinTest extends SimpleDbTestBase {
         // test the join results
         SystemTestUtil.matchTuples(joinOp, expectedResults);
 
-        joinOp.close();
         Database.getBufferPool().transactionComplete(tid);
     }
 
