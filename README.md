@@ -75,7 +75,7 @@ You should have Git installed and have beeb added to the cs235 organization alre
    issuing the following commands on the command line:
 
    ```bash
-    $ git clone git@mit.cs.uchicago.edu:cs23500-win-18/cmsc23500-win-18.git
+    $ git clone git@mit.cs.uchicago.edu:cmsc23500-win-18/cmsc23500-win-18.git
    ```
 
    This will make a complete replica of the course repository locally. Now we
