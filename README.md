@@ -45,7 +45,7 @@ There are numerous guides on using Git that are available. They range from being
 interactive to just text-based. Find one that works and experiment; making
 mistakes and fixing them is a great way to learn. Here is a link to resources
 that GitHub suggests:
-[https://help.github.com/articles/what-are-other-good-resources-for-learning-git-and-github][resources].
+[resources for learning git](https://help.github.com/articles/what-are-other-good-resources-for-learning-git-and-github).
 
 If you have no experience with git, you may find the following web-based tutorial helpful:
 [Try Git](https://try.github.io/levels/1/challenges/1).
