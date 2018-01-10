@@ -373,7 +373,7 @@ integer, string) implement.  `Tuple` objects are created by the
 underlying access methods (e.g., heap files, or B-trees), as described in
 the next section.  Tuples also have a type (or schema), called a _tuple
 descriptor_, represented by a `TupleDesc` object.  This
-object consists of a collection of `Type` objects, one per field
+object consists of a collection of `TDItem` objects, one per field
 in the tuple, each of which describes the type of the corresponding field.
 
 ### Exercise 1
