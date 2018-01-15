@@ -358,7 +358,7 @@ future labs.
 
 <p>
 
-You may also wish to consult the [JavaDoc](http://db.csail.mit.edu/6.830/simpledb/doc) for SimpleDB.
+You may also wish to consult the [JavaDoc](http://people.cs.uchicago.edu/~aelmore/simple/) for SimpleDB.
 
 ###  2.1. The Database Class 
 
