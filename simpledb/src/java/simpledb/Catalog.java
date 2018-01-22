@@ -69,6 +69,12 @@ public class Catalog {
 			this.schema = schema;
 			this.file = file;
 		}
+		void resetTable(String name, String keyField, TupleDesc schema, DbFile file) {
+			this.name = name;
+			this.keyField = keyField;
+			this.schema = schema;
+			this.file = file;
+		}
 	}
 	
 	private ArrayList<Table> tables;
@@ -93,13 +99,20 @@ public class Catalog {
     		if (name == null) {
     			return;
     		} 
-    		for(int i=0; i<tables.size(); i++) {
-    			if(tables.get(i).getName() == name) {
-    				tables.get(i).resetTable(file.getId(), pkeyField, file.getTupleDesc(), file);
-    				return;
-    			}
+    		int id = file.getId();
+    		if (tables.size() != 0) {
+	    		for(int i=0; i<tables.size(); i++) {
+	    			if(tables.get(i).getName() == name) {
+	    				tables.get(i).resetTable(file.getId(), pkeyField, file.getTupleDesc(), file);
+	    				return;
+	    			}
+	    			if(tables.get(i).getId() == id) {
+	    				tables.get(i).resetTable(name,  pkeyField, file.getTupleDesc(), file);
+	    				return;
+	    			}
+	    		}
     		}
-        int id = file.getId();
+        
         TupleDesc schema = file.getTupleDesc();
         tables.add(new Table(name, id, pkeyField, schema, file));
     }
@@ -191,6 +204,7 @@ public class Catalog {
     /** Delete all tables from the catalog */
     public void clear() {
         tables = null;
+        tables = new ArrayList<Table>();
     }
     
     /**
