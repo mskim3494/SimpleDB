@@ -2,6 +2,8 @@ package simpledb;
 
 import java.util.*;
 import java.io.*;
+import java.lang.Math;
+
 
 /**
  * Each instance of HeapPage stores data for one page of HeapFiles and 
@@ -47,7 +49,7 @@ public class HeapPage implements Page {
         // allocate and read the header slots of this page
         header = new byte[getHeaderSize()];
         for (int i=0; i<header.length; i++)
-            header[i] = dis.readByte();
+            header[i] = dis.readByte(); //need to read header bytes from the data?
         
         tuples = new Tuple[numSlots];
         try{
@@ -66,20 +68,18 @@ public class HeapPage implements Page {
         @return the number of tuples on this page
     */
     private int getNumTuples() {        
-        // some code goes here
-        return 0;
-
+        // some code goes here   	
+    	return (int) Math.floor(BufferPool.getPageSize()*8) / (td.getSize() * 8 + 1);
     }
 
     /**
      * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
-    private int getHeaderSize() {        
-        
+    private int getHeaderSize() {                
         // some code goes here
-        return 0;
-                 
+    	return (int)Math.ceil(this.numSlots / 8);
+
     }
     
     /** Return a view of this page before it was modified
@@ -111,8 +111,11 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    // some code goes here
-    throw new UnsupportedOperationException("implement this");
+    
+    	return pid;
+    	
+    	
+    //throw new UnsupportedOperationException("implement this");
     }
 
     /**
@@ -282,7 +285,23 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        return 0;
+    	// count the number of 1-bits in the header
+
+    	int onebits = 0;
+    	for (int i=0; i<header.length; i++) {
+    		byte abyte = header[i];
+    		for (int j=0; j<8; j++)  {//inspect each bit
+    			//e.g. if 20 tuples are stored, in the third byte only 4 bits should be inspected
+    			//2*8+3 < 20. so index 0,1,2,3 of third bytes are inspected only
+    			if (i*8 + j < this.numSlots) {
+	    			int bit = ((int) abyte & (1 << j)) >> j;
+	    			onebits += bit;
+    			}
+    		}
+    	}
+    	
+    	//total num of slots - occupied slots
+        return this.numSlots - onebits;
     }
 
     /**
@@ -290,7 +309,14 @@ public class HeapPage implements Page {
      */
     public boolean isSlotUsed(int i) {
         // some code goes here
-        return false;
+    	//given i is the slot index:
+    	int headerByteIndex = (int)(i / 8);
+    	int bitIndex = i % 8;
+    	int abyte = header[headerByteIndex];
+    	
+    	int bit = ((int) abyte & (1 << bitIndex)) >> bitIndex;
+    	
+        return bit == 1;
     }
 
     /**
@@ -307,7 +333,13 @@ public class HeapPage implements Page {
      */
     public Iterator<Tuple> iterator() {
         // some code goes here
-        return null;
+    	ArrayList<Tuple> al = new ArrayList<Tuple>();
+    	for (int i=0; i<this.numSlots;i++) {
+    		if (isSlotUsed(i))  //only add tuple corresponding to used slots
+    			al.add(tuples[i]);
+    	}
+    	
+        return al.iterator();
     }
 
 }
