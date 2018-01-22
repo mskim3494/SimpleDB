@@ -1,6 +1,7 @@
 package simpledb;
 
 import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,13 +18,66 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Threadsafe
  */
 public class Catalog {
-
+		
+	private class Table {
+		private String name;
+		private String keyField;
+		private int id;
+		private TupleDesc schema;
+		private DbFile file;
+		
+		public Table(String name, int id, String keyField, TupleDesc schema, DbFile file) {
+			this.name = name;
+			this.id = id;
+			this.keyField = keyField;
+			this.schema = schema;
+			this.file = file;
+		}
+		public String getName() {
+			return this.name;
+		}
+		public int getId() {
+			return this.id;
+		}
+		public String getKeyField() {
+			return this.keyField;
+		}
+		public TupleDesc getSchema() {
+			return this.schema;
+		}
+		public DbFile getFile() {
+			return this.file;
+		}
+		void setName(String newname) {
+			this.name = newname;
+		}
+		void setId(int newid) {
+			this.id = newid;
+		}
+		void setKeyField(String newkey) {
+			this.keyField = newkey;
+		}
+		void setSchema(TupleDesc newschema) {
+			this.schema = newschema;
+		}
+		void setFile(DbFile file) {
+			this.file = file;
+		}
+		void resetTable(int id, String keyField, TupleDesc schema, DbFile file) {
+			this.id = id;
+			this.keyField = keyField;
+			this.schema = schema;
+			this.file = file;
+		}
+	}
+	
+	private ArrayList<Table> tables;
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
-        // some code goes here
+        tables = new ArrayList<Table>();
     }
 
     /**
@@ -36,7 +90,18 @@ public class Catalog {
      * @param pkeyField the name of the primary key field
      */
     public void addTable(DbFile file, String name, String pkeyField) {
-        // some code goes here
+    		if (name == null) {
+    			return;
+    		} 
+    		for(int i=0; i<tables.size(); i++) {
+    			if(tables.get(i).getName() == name) {
+    				tables.get(i).resetTable(file.getId(), pkeyField, file.getTupleDesc(), file);
+    				return;
+    			}
+    		}
+        int id = file.getId();
+        TupleDesc schema = file.getTupleDesc();
+        tables.add(new Table(name, id, pkeyField, schema, file));
     }
 
     public void addTable(DbFile file, String name) {
@@ -59,8 +124,12 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) throws NoSuchElementException {
-        // some code goes here
-        return 0;
+	    	for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getName() == name) {
+				return tables.get(i).getId();
+			}
+		}
+        throw new NoSuchElementException();
     }
 
     /**
@@ -70,8 +139,12 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+	    	for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getId() == tableid) {
+				return tables.get(i).getSchema();
+			}
+		}
+	    	throw new NoSuchElementException();
     }
 
     /**
@@ -81,28 +154,43 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+	    	for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getId() == tableid) {
+				return tables.get(i).getFile();
+			}
+		}
+	    	throw new NoSuchElementException();
     }
 
     public String getPrimaryKey(int tableid) {
-        // some code goes here
-        return null;
+	    	for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getId() == tableid) {
+				return tables.get(i).getKeyField();
+			}
+		}
+	    	throw new NoSuchElementException();
     }
 
     public Iterator<Integer> tableIdIterator() {
-        // some code goes here
-        return null;
+        ArrayList<Integer> temp = new ArrayList<Integer>();
+	    	for(int i=0; i<tables.size(); i++) {
+			temp.add(tables.get(i).getId());
+		}
+	    	return temp.iterator();
     }
 
     public String getTableName(int id) {
-        // some code goes here
-        return null;
+    		for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getId() == id) {
+				return tables.get(i).getName();
+			}
+		}
+    		return null;
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
-        // some code goes here
+        tables = null;
     }
     
     /**
