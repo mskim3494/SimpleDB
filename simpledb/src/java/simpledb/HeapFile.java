@@ -146,7 +146,7 @@ public class HeapFile implements DbFile {
 		@Override
 		public void open() throws DbException, TransactionAbortedException {
 			HeapPageId currpid = new HeapPageId(this.hf.getId(), this.currPageNo);
-            this.currPage = (HeapPage) this.hf.readPage(currpid);
+            this.currPage = (HeapPage) Database.getBufferPool().getPage(this.tid, currpid, null);
             this.tuples = this.currPage.iterator();
 		}
 
@@ -166,7 +166,7 @@ public class HeapFile implements DbFile {
 					while(breakflag) {
 						if(this.currPageNo < this.hf.numPages()) {
 							HeapPageId currpid = new HeapPageId(this.hf.getId(), ++this.currPageNo);
-				            this.currPage = (HeapPage) this.hf.readPage(currpid);
+							this.currPage = (HeapPage) Database.getBufferPool().getPage(this.tid, currpid, null);
 				            this.tuples = this.currPage.iterator();
 				            if(this.tuples != null && this.tuples.hasNext()) {
 				            		return this.tuples.next();

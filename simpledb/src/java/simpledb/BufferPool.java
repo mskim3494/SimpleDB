@@ -72,16 +72,31 @@ public class BufferPool {
      */
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
-        // some code goes here
-    	
-    	for (int i=0; i<pages.length;i++) {
-    		Page nextpage = pages[i];
-    		if (nextpage.getId().equals(pid))
-    			return nextpage;
-    	}
-    	
-    	//if no page with the pid is found, return null
-        return null;
+        boolean full = false;
+        int i;
+	    	for (i=0; i<pages.length;i++) {
+	    		Page nextpage = pages[i];
+	    		if (nextpage != null) {
+		    		if (nextpage.getId().equals(pid)) {
+		    			return nextpage;
+		    		}
+	    		} else {
+	    			break;
+	    		}
+	    	} 
+	    	//if no page with the pid is found, get the page
+	    	if (i == (pages.length-1)) { // buffer is full
+	    		this.evictPage();
+	    	}
+	    	DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
+		Page page = dbfile.readPage(pid);
+		// put the page in the cache
+		for (i=0; i<pages.length;i++) {
+	    		if (pages[i] == null) {
+		    		pages[i] = page;
+	    		} 
+		} 
+		return page;
     }
 
     /**
