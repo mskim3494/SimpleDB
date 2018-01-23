@@ -35,7 +35,7 @@ public class Tuple implements Serializable {
             	this.fields.add(null); //adding nulls as a placeholder: arraylist is originally of 0 size
             
         }
-        System.out.println("after init, tuple's size: " + this.fields.size() + " " + td.numFields());
+        //System.out.println("after init, tuple's size: " + this.fields.size() + " " + td.numFields());
 
     }
 
