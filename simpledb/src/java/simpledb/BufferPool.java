@@ -74,10 +74,13 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
         // some code goes here
     	
+    	for (int i=0; i<pages.length;i++) {
+    		Page nextpage = pages[i];
+    		if (nextpage.getId().equals(pid))
+    			return nextpage;
+    	}
     	
-    	
-    	
-    	
+    	//if no page with the pid is found, return null
         return null;
     }
 
