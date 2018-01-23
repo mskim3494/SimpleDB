@@ -13,7 +13,6 @@ public class RecordId implements Serializable {
     private static final long serialVersionUID = 1L;
     private PageId pid;
     private int tupleno;
-    private HashMap<PageId, Integer> hmap;
     /**
      * Creates a new RecordId referring to the specified PageId and tuple
      * number.
@@ -26,7 +25,7 @@ public class RecordId implements Serializable {
     public RecordId(PageId pid, int tupleno) {
         this.pid = pid;
         this.tupleno = tupleno;
-        hmap = new HashMap<PageId, Integer>();
+        
     }
     
     /**
@@ -55,9 +54,8 @@ public class RecordId implements Serializable {
     public boolean equals(Object o) {
         if(this.pid.equals(((RecordId) o).getPageId()) && this.tupleno == ((RecordId)o).getTupleNumber()){
         		return true;
-        } else {
-        		return false;
-        }
+        } 
+        	return false;
     }
 
     /**
@@ -68,7 +66,7 @@ public class RecordId implements Serializable {
      */
     @Override
     public int hashCode() {
-    		
+    		return 0;
     }
 
 }
