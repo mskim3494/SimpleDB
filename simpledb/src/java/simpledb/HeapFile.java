@@ -14,7 +14,9 @@ import java.util.*;
  * @author Sam Madden
  */
 public class HeapFile implements DbFile {
-
+	private File file;
+	private TupleDesc td;
+	private int tableid;
     /**
      * Constructs a heap file backed by the specified file.
      * 
@@ -23,7 +25,9 @@ public class HeapFile implements DbFile {
      *            file.
      */
     public HeapFile(File f, TupleDesc td) {
-        // some code goes here
+        this.file = f;
+        this.td = td;
+        this.tableid = this.file.getAbsoluteFile().hashCode();
     }
 
     /**
@@ -33,7 +37,7 @@ public class HeapFile implements DbFile {
      */
     public File getFile() {
         // some code goes here
-        return null;
+        return this.file;
     }
 
     /**
@@ -46,8 +50,8 @@ public class HeapFile implements DbFile {
      * @return an ID uniquely identifying this HeapFile.
      */
     public int getId() {
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        return this.tableid;
+        //throw new UnsupportedOperationException("implement this");
     }
 
     /**
@@ -56,14 +60,36 @@ public class HeapFile implements DbFile {
      * @return TupleDesc of this DbFile.
      */
     public TupleDesc getTupleDesc() {
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        return this.td;
+        //throw new UnsupportedOperationException("implement this");
     }
 
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
-        // some code goes here
-        return null;
+	    	int offset = BufferPool.getPageSize() * pid.getPageNumber();	
+	    	byte[] buffer = new byte[BufferPool.getPageSize()];
+	    	RandomAccessFile raf = null;
+	    	Page ret = null;
+		try {
+			raf = new RandomAccessFile(this.file,"r");
+		    	//assert (offset + BufferPool.getPageSize() < raf.length());
+		    	raf.seek(offset);
+		    	raf.read(buffer);
+		    	ret = new HeapPage((HeapPageId) pid, buffer); 
+		    	return ret;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				raf.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		// shouldn't get here
+		return ret;
     }
 
     // see DbFile.java for javadocs
@@ -77,7 +103,7 @@ public class HeapFile implements DbFile {
      */
     public int numPages() {
         // some code goes here
-        return 0;
+        return (int) Math.ceil(this.file.length()/BufferPool.getPageSize());
     }
 
     // see DbFile.java for javadocs
@@ -98,8 +124,71 @@ public class HeapFile implements DbFile {
 
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
-        // some code goes here
-        return null;
+        return new HfIterator(this, tid);
+    }
+    
+    // Subclass for DbFileIterator
+    class HfIterator extends AbstractDbFileIterator{
+    		private HeapFile hf;
+    		private TransactionId tid;
+    		private Iterator<Tuple> tuples;
+    		private HeapPage currPage;
+    		private int currPageNo;
+    		
+    		HfIterator(HeapFile hf, TransactionId tid){
+    			this.hf = hf;
+    			this.tid = tid;
+    			this.currPage = null;
+    			this.tuples = null;
+    			this.currPageNo = 0;
+    		}
+    		
+		@Override
+		public void open() throws DbException, TransactionAbortedException {
+			HeapPageId currpid = new HeapPageId(this.hf.getId(), this.currPageNo);
+            this.currPage = (HeapPage) this.hf.readPage(currpid);
+            this.tuples = this.currPage.iterator();
+		}
+
+		@Override
+		public void rewind() throws DbException, TransactionAbortedException {
+			this.close();
+			this.open();
+		}
+
+		@Override
+		protected Tuple readNext() throws DbException, TransactionAbortedException {
+			if (this.tuples != null) {
+				if(this.tuples.hasNext()) {
+					return this.tuples.next();
+				} else {
+					boolean breakflag = true;
+					while(breakflag) {
+						if(this.currPageNo < this.hf.numPages()) {
+							HeapPageId currpid = new HeapPageId(this.hf.getId(), ++this.currPageNo);
+				            this.currPage = (HeapPage) this.hf.readPage(currpid);
+				            this.tuples = this.currPage.iterator();
+				            if(this.tuples != null && this.tuples.hasNext()) {
+				            		return this.tuples.next();
+				            } 
+						} else {
+							return null;
+						}
+					}
+				}
+			}
+			return null;
+		}
+		
+		@Override
+		/** If subclasses override this, they should call super.close(). */
+	    public void close() {
+	        super.close();
+	        this.tuples = null;
+	        this.currPage = null;
+	        this.currPageNo = 0;
+	    }
+    		
     }
 
 }
