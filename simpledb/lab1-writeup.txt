@@ -1,6 +1,7 @@
 1) Describe any design decisions you made. These may be minimal for Lab 1.
 Generally, for fixed-size storage we used an array (e.g. header[] tuples[] for HeapPage, page[] for BufferPool)
 and used ArrayList when the size has to change dynamically. (e.g. HeapPage.iterator())
+The catalog includes an ArrayList of tables, each table described by a helper class to keep track of them. They save the table name and id for easy iteration.
 For SeqScan's iterator, we are using HfIterator's iterator declared within HeapFile.
 
 2) Discuss and justify any changes you made to the API.
@@ -13,6 +14,7 @@ However, this doesn't affect calling HeapFile.iterator() either.
 - gwkim: Tuple, TupleDesc, HeapFile, SeqScan
 - mskim3494: Catalog, BufferPool, RecordID, HeapPageID, HeapPage
 At each commit we reviewed the changes together.
+We continuously kept in touch and had debugging sessions together. 
 
 4) Describe any missing or incomplete elements of your code.
 We have not yet implemented things that were marked as not necessary for lab1.
