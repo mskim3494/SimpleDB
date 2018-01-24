@@ -24,15 +24,13 @@ public class RecordId implements Serializable {
      */
     public RecordId(PageId pid, int tupleno) {
         this.pid = pid;
-        this.tupleno = tupleno;
-        
+        this.tupleno = tupleno;   
     }
     
     /**
      * @return the tuple number this RecordId references.
      */
     public int getTupleNumber() {
-        // some code goes here
         return this.tupleno;
     }
 
@@ -40,7 +38,6 @@ public class RecordId implements Serializable {
      * @return the page id this RecordId references.
      */
     public PageId getPageId() {
-        // some code goes here
         return this.pid;
     }
 
@@ -52,7 +49,8 @@ public class RecordId implements Serializable {
      */
     @Override
     public boolean equals(Object o) {
-        if(this.pid.equals(((RecordId) o).getPageId()) && this.tupleno == ((RecordId)o).getTupleNumber()){
+    	//RecordId is defined with pid and tupleno, so compare these two values
+        if (this.pid.equals(((RecordId) o).getPageId()) && this.tupleno == ((RecordId)o).getTupleNumber()){
         		return true;
         } 
         	return false;
@@ -66,7 +64,8 @@ public class RecordId implements Serializable {
      */
     @Override
     public int hashCode() {
-    		return 0;
+    	//similar to other hashcode implementations (in HeapPageId, for example)
+		String temp = "" + this.pid.hashCode() + this.tupleno;
+		return Integer.parseInt(temp);
     }
-
 }

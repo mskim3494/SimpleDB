@@ -36,7 +36,6 @@ public class HeapFile implements DbFile {
      * @return the File backing this HeapFile on disk.
      */
     public File getFile() {
-        // some code goes here
         return this.file;
     }
 
@@ -51,7 +50,6 @@ public class HeapFile implements DbFile {
      */
     public int getId() {
         return this.tableid;
-        //throw new UnsupportedOperationException("implement this");
     }
 
     /**
@@ -61,22 +59,23 @@ public class HeapFile implements DbFile {
      */
     public TupleDesc getTupleDesc() {
         return this.td;
-        //throw new UnsupportedOperationException("implement this");
     }
 
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
-	    	int offset = BufferPool.getPageSize() * pid.getPageNumber();	
-	    	byte[] buffer = new byte[BufferPool.getPageSize()];
-	    	RandomAccessFile raf = null;
-	    	Page ret = null;
+		//prepare an offset to start reading the file with
+    	int offset = BufferPool.getPageSize() * pid.getPageNumber();
+    	//buffer to store the reads
+    	byte[] buffer = new byte[BufferPool.getPageSize()];
+    	RandomAccessFile raf = null;
+    	Page ret = null;
+    	
 		try {
 			raf = new RandomAccessFile(this.file,"r");
-		    	//assert (offset + BufferPool.getPageSize() < raf.length());
-		    	raf.seek(offset);
-		    	raf.read(buffer);
-		    	ret = new HeapPage((HeapPageId) pid, buffer); 
-		    	return ret;
+	    	raf.seek(offset); //move by buffer 
+	    	raf.read(buffer); //read into the buffer
+	    	ret = new HeapPage((HeapPageId) pid, buffer); //create a new HeapPage 
+	    	return ret;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -102,7 +101,7 @@ public class HeapFile implements DbFile {
      * Returns the number of pages in this HeapFile.
      */
     public int numPages() {
-        // some code goes here
+        // formula as suggested in lab1.md
         return (int) Math.ceil(this.file.length()/BufferPool.getPageSize());
     }
 
@@ -142,10 +141,7 @@ public class HeapFile implements DbFile {
     			this.currPage = null;
     			this.tuples = null;
     			this.currPageNo = 0;
-    			
-    			
 
-    			
     		}
     		
 		@Override
