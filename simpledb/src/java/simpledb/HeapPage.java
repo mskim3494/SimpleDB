@@ -78,7 +78,9 @@ public class HeapPage implements Page {
      */
     private int getHeaderSize() {                
         // some code goes here
-    	return (int)Math.ceil(this.numSlots / 8);
+    	//System.out.println("this.numSlots: " + this.numSlots + " headersize: " + Math.ceil(this.numSlots / 8));
+    	//fixed from 8 to 8.0, some weird error
+    	return (int)Math.ceil(this.numSlots / 8.0);
 
     }
     
@@ -312,6 +314,7 @@ public class HeapPage implements Page {
     	//given i is the slot index:
     	int headerByteIndex = (int)(i / 8);
     	int bitIndex = i % 8;
+    	//System.out.println("slotnum, header.length and headerByteIndex: " + i + " " +  header.length + " " + headerByteIndex);
     	int abyte = header[headerByteIndex];
     	
     	int bit = ((int) abyte & (1 << bitIndex)) >> bitIndex;

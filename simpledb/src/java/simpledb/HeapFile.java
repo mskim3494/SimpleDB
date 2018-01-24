@@ -136,15 +136,31 @@ public class HeapFile implements DbFile {
     		private int currPageNo;
     		
     		HfIterator(HeapFile hf, TransactionId tid){
+    			//System.out.println("HF: HfIterator constructor");
     			this.hf = hf;
     			this.tid = tid;
     			this.currPage = null;
     			this.tuples = null;
     			this.currPageNo = 0;
+    			
+    			
+    			//since this.open() does not seem to have run...
+    			//after adding this, some testSmall cases pass.
+    			try {
+					open();
+				} catch (DbException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (TransactionAbortedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    			
     		}
     		
 		@Override
 		public void open() throws DbException, TransactionAbortedException {
+			//System.out.println("HF: HFIterator.open run");
 			HeapPageId currpid = new HeapPageId(this.hf.getId(), this.currPageNo);
             this.currPage = (HeapPage) Database.getBufferPool().getPage(this.tid, currpid, null);
             this.tuples = this.currPage.iterator();
@@ -158,10 +174,14 @@ public class HeapFile implements DbFile {
 
 		@Override
 		protected Tuple readNext() throws DbException, TransactionAbortedException {
+			//System.out.println("HFI.readnext");
 			if (this.tuples != null) {
+				//System.out.println("this.tuples is not null");
 				if(this.tuples.hasNext()) {
+					//System.out.println("this.tuples has next");
 					return this.tuples.next();
 				} else {
+					//System.out.println("this.tuples does not have next");
 					boolean breakflag = true;
 					while(breakflag) {
 						if(this.currPageNo < this.hf.numPages()) {
@@ -177,6 +197,9 @@ public class HeapFile implements DbFile {
 					}
 				}
 			}
+			//else {
+			//	System.out.println("this.tuples == null");
+			//}
 			return null;
 		}
 		
