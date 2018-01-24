@@ -144,17 +144,7 @@ public class HeapFile implements DbFile {
     			this.currPageNo = 0;
     			
     			
-    			//since this.open() does not seem to have run...
-    			//after adding this, some testSmall cases pass.
-    			try {
-					open();
-				} catch (DbException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (TransactionAbortedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+
     			
     		}
     		
