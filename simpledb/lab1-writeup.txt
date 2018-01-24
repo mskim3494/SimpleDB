@@ -1,0 +1,22 @@
+1) Describe any design decisions you made. These may be minimal for Lab 1.
+Generally, for fixed-size storage we used an array (e.g. header[] tuples[] for HeapPage, page[] for BufferPool)
+and used ArrayList when the size has to change dynamically. (e.g. HeapPage.iterator())
+For SeqScan's iterator, we are using HfIterator's iterator declared within HeapFile.
+
+2) Discuss and justify any changes you made to the API.
+We have not made any changes to the API, so the skeleton codes can still be run with originally required parameters.
+For HeapFile.iterator(), we declared a new class HfIterator, since DbFileIterator is an interface and we needed an implementation.
+However, this doesn't affect calling HeapFile.iterator() either.
+
+3) Describe how you and your partner split up the work. You are both responsible for understanding all of the code being submitted.
+- Our responsibilities sometimes overlapped, but in general, these are the files each of use worked with
+- gwkim: Tuple, TupleDesc, HeapFile, SeqScan
+- mskim3494: Catalog, BufferPool, RecordID, HeapPageID, HeapPage
+At each commit we reviewed the changes together.
+
+4) Describe any missing or incomplete elements of your code.
+We have not yet implemented things that were marked as not necessary for lab1.
+
+5) Describe how long you spent on the lab, and whether there was anything you found particularly difficult or confusing.
+Each one of us spent roughly 10 hours for the lab.
+gwkim: I personally thought debugging took longer than was needed, because some of the codes written for tests were confusing (e.g. logging to Debug)
