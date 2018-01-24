@@ -30,6 +30,7 @@ public class BufferPool {
     
     private Page[] pages;
     
+    
     /**
      * Creates a BufferPool that caches up to numPages pages.
      *
@@ -75,6 +76,7 @@ public class BufferPool {
 	    		Page nextpage = pages[i];
 	    		if (nextpage != null) {
 		    		if (nextpage.getId().equals(pid)) {
+		    			//System.out.println("found in bufferpool");
 		    			return nextpage;
 		    		}
 	    		} 
@@ -92,14 +94,19 @@ public class BufferPool {
 	    	}
 	    	//if no page with the pid is found, get the page
 	    	DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
-		Page page = dbfile.readPage(pid);
+		
+	    //System.out.println("will run HF.readPage for tableid, pagenum :" + pid.getTableId() + " " + pid.getPageNumber());
+	    Page page = dbfile.readPage(pid);
 		// put the page in the cache
 		for (int i=0; i<pages.length;i++) {
 	    		if (pages[i] == null) {
-				pages[i] = page;
-				break;
+		    		pages[i] = page;
+		    		//System.out.println("inserted in i: " + i);
+		    		break;
 	    		} 
 		} 
+		
+		
 		return page;
     }
 

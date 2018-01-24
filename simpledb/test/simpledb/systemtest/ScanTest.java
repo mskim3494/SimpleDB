@@ -36,6 +36,7 @@ public class ScanTest extends SimpleDbTestBase {
     }
 
     /** Scan 1-4 columns. */
+    
     @Test public void testSmall() throws IOException, DbException, TransactionAbortedException {
         int[] columnSizes = new int[]{1, 2, 3, 4};
         int[] rowSizes =
@@ -44,8 +45,9 @@ public class ScanTest extends SimpleDbTestBase {
     	validateScan(columnSizes, rowSizes);
     }
     
+    
     /** Test that rewinding a SeqScan iterator works. */
-    /*
+    
     @Test public void testRewind() throws IOException, DbException, TransactionAbortedException {
         ArrayList<ArrayList<Integer>> tuples = new ArrayList<ArrayList<Integer>>();
         HeapFile f = SystemTestUtil.createRandomHeapFile(2, 1000, null, tuples);
@@ -68,14 +70,14 @@ public class ScanTest extends SimpleDbTestBase {
         scan.close();
         Database.getBufferPool().transactionComplete(tid);
     }
-	*/
+	
     
     
     /** Verifies that the buffer pool is actually caching data.
      * @throws TransactionAbortedException
      * @throws DbException */
     
-    /*
+    
     @Test public void testCache() throws IOException, DbException, TransactionAbortedException {
         /// Counts the number of readPage operations.
         class InstrumentedHeapFile extends HeapFile {
@@ -109,7 +111,7 @@ public class ScanTest extends SimpleDbTestBase {
         SystemTestUtil.matchTuples(table, tuples);
         assertEquals(0, table.readCount);
     }
-    */
+    
     
     /** Make test compatible with older version of ant. */
     public static junit.framework.Test suite() {
