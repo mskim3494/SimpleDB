@@ -96,12 +96,12 @@ public class SeqScan implements DbIterator {
     	//this is why open() needs to be run before any other method
     	
     	 
-    	// get a heapfile associated with this tableid from catalog
-    	// using DbFile(HeapFile).iterator as required
-    	HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(this.tableid);
-    	//need to create an iterator, but iterable is not needed maybe (unlike TupleIterator)
-    	this.i = (HfIterator) hf.iterator(this.tid);
-
+	    	// get a heapfile associated with this tableid from catalog
+	    	// using DbFile(HeapFile).iterator as required
+	    	HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(this.tableid);
+	    	//need to create an iterator, but iterable is not needed maybe (unlike TupleIterator)
+	    	this.i = (HfIterator) hf.iterator(this.tid);
+	    	this.i.open();
     }
 
     /**
@@ -131,7 +131,8 @@ public class SeqScan implements DbIterator {
 
     public void close() {
         // some code goes here
-    	this.i = null;
+    		this.i.close();
+    		this.i = null;
     }
 
     public void rewind() throws DbException, NoSuchElementException,
