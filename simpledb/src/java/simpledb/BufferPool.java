@@ -4,7 +4,6 @@ import java.io.*;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-
 /**
  * BufferPool manages the reading and writing of pages into memory from
  * disk. Access methods call into it to retrieve pages, and it fetches
@@ -72,26 +71,31 @@ public class BufferPool {
      */
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
-        boolean full = false;
-        int i;
-	    	for (i=0; i<pages.length;i++) {
+	    	for (int i=0; i<pages.length;i++) {
 	    		Page nextpage = pages[i];
 	    		if (nextpage != null) {
 		    		if (nextpage.getId().equals(pid)) {
+		    			System.out.println("found in bufferpool");
 		    			return nextpage;
 		    		}
-	    		} else {
-	    			break;
-	    		}
+	    		} 
 	    	} 
-	    	//if no page with the pid is found, get the page
-	    	if (i == (pages.length-1)) { // buffer is full
-	    		this.evictPage();
+	    	//check if full
+	    	boolean isfull = true;
+	    	for (int i=0; i<pages.length; i++) {
+	    		if (pages[i] == null) {
+	    			isfull = false;
+	    		}
 	    	}
+	    	if(isfull) {
+	    		// this.evictPage(); in future lab
+	    	}
+	    	//if no page with the pid is found, get the page
+	    	
 	    	DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
 		Page page = dbfile.readPage(pid);
 		// put the page in the cache
-		for (i=0; i<pages.length;i++) {
+		for (int i=0; i<pages.length;i++) {
 	    		if (pages[i] == null) {
 		    		pages[i] = page;
 	    		} 
