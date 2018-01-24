@@ -15,6 +15,8 @@ import java.util.ArrayList;
 public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    // Private elements in the tuple. Includes the header,
+    // a uniquely identifying ID, and an array containing its fields
     private TupleDesc td;
     private RecordId rid;
     private ArrayList<Field> fields;
@@ -28,15 +30,14 @@ public class Tuple implements Serializable {
      *            instance with at least one field.
      */
     public Tuple(TupleDesc td) {
-        if (td.numFields() >= 1){
+        if (td.numFields() >= 1){ // make sure there is at least one field
             this.td = td;
             this.fields = new ArrayList<Field>(td.numFields());
-            for (int i=0; i<td.numFields(); i++)
-            	this.fields.add(null); //adding nulls as a placeholder: arraylist is originally of 0 size
-            
+            //adding nulls as a placeholder: arraylist is originally of 0 size
+            for (int i=0; i<td.numFields(); i++) {
+            		this.fields.add(null); 
+            }
         }
-        //System.out.println("after init, tuple's size: " + this.fields.size() + " " + td.numFields());
-
     }
 
     /**
@@ -51,7 +52,6 @@ public class Tuple implements Serializable {
      *         be null.
      */
     public RecordId getRecordId() {
-        // some code goes here
         return this.rid;
     }
 
@@ -62,7 +62,6 @@ public class Tuple implements Serializable {
      *            the new RecordId for this tuple.
      */
     public void setRecordId(RecordId rid) {
-        // some code goes here
         this.rid = rid;
     }
 
@@ -87,7 +86,6 @@ public class Tuple implements Serializable {
      *            field index to return. Must be a valid index.
      */
     public Field getField(int i) {
-        // some code goes here
         if(i < td.numFields()){
             return fields.get(i);
         } else {
@@ -110,7 +108,6 @@ public class Tuple implements Serializable {
             ret.concat(fields.get(i).toString()).concat("\t");
         }
         return ret;
-        //throw new UnsupportedOperationException("Implement this");
     }
     
     /**

@@ -64,18 +64,17 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
 		//prepare an offset to start reading the file with
-    	int offset = BufferPool.getPageSize() * pid.getPageNumber();
-    	//buffer to store the reads
-    	byte[] buffer = new byte[BufferPool.getPageSize()];
-    	RandomAccessFile raf = null;
-    	Page ret = null;
-    	
+    		int offset = BufferPool.getPageSize() * pid.getPageNumber();
+    		//buffer to store the reads
+    		byte[] buffer = new byte[BufferPool.getPageSize()];
+    		RandomAccessFile raf = null;
+    		Page ret = null;
 		try {
 			raf = new RandomAccessFile(this.file,"r");
-	    	raf.seek(offset); //move by buffer 
-	    	raf.read(buffer); //read into the buffer
-	    	ret = new HeapPage((HeapPageId) pid, buffer); //create a new HeapPage 
-	    	return ret;
+		    	raf.seek(offset); //move by buffer 
+		    	raf.read(buffer); //read into the buffer
+		    	ret = new HeapPage((HeapPageId) pid, buffer); //create a new HeapPage 
+		    	return ret;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -128,6 +127,9 @@ public class HeapFile implements DbFile {
     
     // Subclass for DbFileIterator
     class HfIterator extends AbstractDbFileIterator{
+    		// tid not used in lab1 but included for future use
+    		// the heapfile is saved so that it can be read
+    		// currPage and currPageNo are for tracking purposes
     		private HeapFile hf;
     		private TransactionId tid;
     		private Iterator<Tuple> tuples;
@@ -135,18 +137,16 @@ public class HeapFile implements DbFile {
     		private int currPageNo;
     		
     		HfIterator(HeapFile hf, TransactionId tid){
-    			//System.out.println("HF: HfIterator constructor");
     			this.hf = hf;
     			this.tid = tid;
     			this.currPage = null;
     			this.tuples = null;
     			this.currPageNo = 0;
-
     		}
     		
 		@Override
 		public void open() throws DbException, TransactionAbortedException {
-			//System.out.println("HF: HFIterator.open run");
+			// open the iterator, get the first page. currPageNo should be 0
 			HeapPageId currpid = new HeapPageId(this.hf.getId(), this.currPageNo);
             this.currPage = (HeapPage) Database.getBufferPool().getPage(this.tid, currpid, null);
             this.tuples = this.currPage.iterator();
@@ -154,20 +154,20 @@ public class HeapFile implements DbFile {
 
 		@Override
 		public void rewind() throws DbException, TransactionAbortedException {
+			// closing gets rid of the iterator and sets everything back to original
 			this.close();
 			this.open();
 		}
 
 		@Override
 		protected Tuple readNext() throws DbException, TransactionAbortedException {
-			//System.out.println("HFI.readnext");
+			// read tuples. Makes use of the already implemented hasNext and next methods
 			if (this.tuples != null) {
-				//System.out.println("this.tuples is not null");
 				if(this.tuples.hasNext()) {
-					//System.out.println("this.tuples has next");
-					return this.tuples.next();
+					return this.tuples.next(); // if there is a next tuple, simple return it
 				} else {
-					//System.out.println("this.tuples does not have next");
+					// will have to move to next page, but since next page might also be empty
+					// iterate until find a page with data or reached the max number of pages
 					boolean breakflag = true;
 					while(breakflag) {
 						if(this.currPageNo < this.hf.numPages() - 1) {
@@ -177,15 +177,12 @@ public class HeapFile implements DbFile {
 				            if(this.tuples != null && this.tuples.hasNext()) {
 				            		return this.tuples.next();
 				            } 
-						} else {
+						} else { // no tuples in remaining pages
 							return null;
 						}
 					}
 				}
 			}
-			//else {
-			//	System.out.println("this.tuples == null");
-			//}
 			return null;
 		}
 		
@@ -197,8 +194,6 @@ public class HeapFile implements DbFile {
 	        this.currPage = null;
 	        this.currPageNo = 0;
 	    }
-    		
     }
-
 }
 
