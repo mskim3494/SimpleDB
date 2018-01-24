@@ -184,7 +184,7 @@ public class HeapFile implements DbFile {
 					//System.out.println("this.tuples does not have next");
 					boolean breakflag = true;
 					while(breakflag) {
-						if(this.currPageNo < this.hf.numPages()) {
+						if(this.currPageNo < this.hf.numPages() - 1) {
 							HeapPageId currpid = new HeapPageId(this.hf.getId(), ++this.currPageNo);
 							this.currPage = (HeapPage) Database.getBufferPool().getPage(this.tid, currpid, null);
 				            this.tuples = this.currPage.iterator();
