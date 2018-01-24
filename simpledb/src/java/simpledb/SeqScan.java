@@ -19,8 +19,6 @@ public class SeqScan implements DbIterator {
     private int tableid;
     private String tableAlias;
     private TransactionId tid;
-    //private Iterable<Tuple> tuples = null;
-    
     
     
     /**
@@ -40,13 +38,13 @@ public class SeqScan implements DbIterator {
      *            tableAlias.null, or null.null).
      */
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
-        // some code goes here
     	this.tid = tid;
     	this.tableid = tableid;  	
     	this.tableAlias = tableAlias;
-    	
-    	//maybe this is only needed at SeqScan.getTupleDesc()
-    	//this.td = Database.getCatalog().getTupleDesc(tableid); 
+    }
+    
+    public SeqScan(TransactionId tid, int tableid) {
+        this(tid, tableid, Database.getCatalog().getTableName(tableid));
     }
 
     /**
@@ -63,7 +61,6 @@ public class SeqScan implements DbIterator {
      * */
     public String getAlias()
     {
-        // some code goes here
     	return this.tableAlias;
     }
 
@@ -80,28 +77,16 @@ public class SeqScan implements DbIterator {
      *            tableAlias.null, or null.null).
      */
     public void reset(int tableid, String tableAlias) {
-        // some code goes here
-    	//not sure what else needs to be done here
     	this.tableid = tableid;  	
     	this.tableAlias = tableAlias;
     }
 
-    public SeqScan(TransactionId tid, int tableid) {
-        this(tid, tableid, Database.getCatalog().getTableName(tableid));
-    }
-
     public void open() throws DbException, TransactionAbortedException {
-    	// some code goes here
-    	//in TupleIterator, open() initializes the iterator.
-    	//this is why open() needs to be run before any other method
-    	
-    	 
-	    	// get a heapfile associated with this tableid from catalog
-	    	// using DbFile(HeapFile).iterator as required
-	    	HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(this.tableid);
-	    	//need to create an iterator, but iterable is not needed maybe (unlike TupleIterator)
-	    	this.i = (HfIterator) hf.iterator(this.tid);
-	    	this.i.open();
+		// get a heapfile associated with this tableid from catalog
+		HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(this.tableid);
+		// borrow from HeapFile's iterator and run its open() method.
+		this.i = (HfIterator) hf.iterator(this.tid);
+		this.i.open();
     }
 
     /**
@@ -114,30 +99,25 @@ public class SeqScan implements DbIterator {
      *         prefixed with the tableAlias string from the constructor.
      */
     public TupleDesc getTupleDesc() {
-        // some code goes here
     	return Database.getCatalog().getTupleDesc(this.tableid);
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
-        // some code goes here
         return this.i.hasNext();
     }
 
     public Tuple next() throws NoSuchElementException,
             TransactionAbortedException, DbException {
-        // some code goes here
         return this.i.next();
     }
 
     public void close() {
-        // some code goes here
     		this.i.close();
     		this.i = null;
     }
 
     public void rewind() throws DbException, NoSuchElementException,
             TransactionAbortedException {
-        // some code goes here
     	close();
     	open();
     }

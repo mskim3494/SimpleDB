@@ -26,8 +26,6 @@ public class BufferPool {
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
 
-    
-    
     private Page[] pages;
     
     
@@ -37,7 +35,6 @@ public class BufferPool {
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-        // some code goes here
     	pages = new Page[numPages];    	
     }
     
@@ -72,11 +69,12 @@ public class BufferPool {
      */
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
+    		//iterate over the pages array 
 	    	for (int i=0; i<pages.length;i++) {
 	    		Page nextpage = pages[i];
 	    		if (nextpage != null) {
+	    			//if a matching pageId is found, return that page
 		    		if (nextpage.getId().equals(pid)) {
-		    			//System.out.println("found in bufferpool");
 		    			return nextpage;
 		    		}
 	    		} 
@@ -92,20 +90,18 @@ public class BufferPool {
 	    	if(isfull) {
 	    		this.evictPage(); // in future lab
 	    	}
-	    	//if no page with the pid is found, get the page
-	    	DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
-		
-	    //System.out.println("will run HF.readPage for tableid, pagenum :" + pid.getTableId() + " " + pid.getPageNumber());
+	    	
+    	//if no page with the pid is found, read page from disk using HeapFile
+    	DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
 	    Page page = dbfile.readPage(pid);
-		// put the page in the cache
+	    
+		// put the page in BufferPool's empty slot
 		for (int i=0; i<pages.length;i++) {
 	    		if (pages[i] == null) {
 		    		pages[i] = page;
-		    		//System.out.println("inserted in i: " + i);
 		    		break;
 	    		} 
 		} 
-		
 		
 		return page;
     }
