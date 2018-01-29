@@ -99,10 +99,10 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
   }
   
   /**
-   * Test IntegerAggregator.mergeTupleIntoGroup() and iterator() over a sum
+   * Test IntegerAggregator with grouping by strings.
    */
   @Test public void mergeSumGroupByString() throws Exception {
-    scan1.open();
+    scan2.open();
     IntegerAggregator agg = new IntegerAggregator(0, Type.STRING_TYPE, 1, Aggregator.Op.SUM);
     
     for (Object[] step : sumString) {
