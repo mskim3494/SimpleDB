@@ -4,21 +4,21 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.NoSuchElementException;
 
-import junit.framework.JUnit4TestAdapter;
-
 import org.junit.Before;
 import org.junit.Test;
 
+import junit.framework.JUnit4TestAdapter;
 import simpledb.systemtest.SimpleDbTestBase;
 
 public class IntegerAggregatorTest extends SimpleDbTestBase {
 
   int width1 = 2;
-  DbIterator scan1;
+  DbIterator scan1, scan2;
   int[][] sum = null;
   int[][] min = null;
   int[][] max = null;
   int[][] avg = null;
+  Object[][] sumString = null;
 
   /**
    * Initialize each unit test
@@ -32,6 +32,16 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
                     3, 4,
                     3, 6,
                     5, 7 });
+    
+    this.scan2 = TestUtil.createTupleList(width1,
+            new Object[] { 
+            			"adam", 2,
+                        "adam", 4,
+                        "frank", 6,
+                        "robert", 2,
+                        "frank", 4,
+                        "john", 6,
+                        "adam", 7 });
 
     // verify how the results progress after a few merges
     this.sum = new int[][] {
@@ -40,6 +50,16 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
       { 1, 12 },
       { 1, 12, 3, 2 }
     };
+    
+    this.sumString = new Object[][] {
+        { "adam", 2 },
+        { "adam", 6 },
+        { "adam", 6, "frank", 6 },
+        { "adam", 6, "frank", 6, "robert", 2},
+        { "adam", 6, "frank", 10, "robert", 2},
+        { "adam", 6, "frank", 10, "robert", 2, "john", 6},
+        { "adam", 13, "frank", 10, "robert", 2, "john", 6}
+      };
 
     this.min = new int[][] {
       { 1, 2 },
@@ -72,6 +92,21 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
     
     for (int[] step : sum) {
       agg.mergeTupleIntoGroup(scan1.next());
+      DbIterator it = agg.iterator();
+      it.open();
+      TestUtil.matchAllTuples(TestUtil.createTupleList(width1, step), it);
+    }
+  }
+  
+  /**
+   * Test IntegerAggregator.mergeTupleIntoGroup() and iterator() over a sum
+   */
+  @Test public void mergeSumGroupByString() throws Exception {
+    scan1.open();
+    IntegerAggregator agg = new IntegerAggregator(0, Type.STRING_TYPE, 1, Aggregator.Op.SUM);
+    
+    for (Object[] step : sumString) {
+      agg.mergeTupleIntoGroup(scan2.next());
       DbIterator it = agg.iterator();
       it.open();
       TestUtil.matchAllTuples(TestUtil.createTupleList(width1, step), it);
@@ -177,6 +212,37 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
       // explicitly ignored
     }
   }
+  
+  /**
+   * Test Integer Aggregator with grouping by String.
+   */
+  @Test public void testIteratorString() throws Exception {
+    // first, populate the aggregator via sum over scan2
+    scan2.open();
+    IntegerAggregator agg = new IntegerAggregator(0, Type.STRING_TYPE, 1, Aggregator.Op.SUM);
+    try {
+      while (true)
+        agg.mergeTupleIntoGroup(scan2.next());
+    } catch (NoSuchElementException e) {
+      // explicitly ignored
+    }
+
+    DbIterator it = agg.iterator();
+    it.open();
+
+    // verify it has four elements
+    int count = 0;
+    try {
+      while (true) {
+        it.next();
+        count++;
+      }
+    } catch (NoSuchElementException e) {
+      // explicitly ignored
+    }
+    assertEquals(4, count);
+  }
+
 
   /**
    * JUnit suite target
