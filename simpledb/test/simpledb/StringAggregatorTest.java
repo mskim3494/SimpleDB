@@ -12,7 +12,7 @@ import junit.framework.JUnit4TestAdapter;
 public class StringAggregatorTest extends SimpleDbTestBase {
 
   int width1 = 2;
-  DbIterator scan1;
+  DbIterator scan1, scan2;
   int[][] count = null;
 
   /**
@@ -35,6 +35,19 @@ public class StringAggregatorTest extends SimpleDbTestBase {
       { 1, 3 },
       { 1, 3, 3, 1 }
     };
+    
+    this.scan2 = TestUtil.createTupleList(width1,
+    		// grade, name of a student
+            new Object[] { 
+            		"a", "adam",
+            		"a", "daniel",
+            		"b", "kate",
+            		"b", "milo",
+            		"c", "mary",
+            		"d", "frank",
+            		"d", "robert",
+            		"d", "mark"
+            		});
 
   }
 
@@ -74,7 +87,8 @@ public class StringAggregatorTest extends SimpleDbTestBase {
     int count = 0;
     try {
       while (true) {
-        it.next();
+        Tuple tuple = it.next();
+        System.out.println(tuple.toString());
         count++;
       }
     } catch (NoSuchElementException e) {
@@ -103,6 +117,36 @@ public class StringAggregatorTest extends SimpleDbTestBase {
     } catch (Exception e) {
       // explicitly ignored
     }
+  }
+  
+  /**
+   * Test StringAggregator for group by String.
+   */
+  @Test public void testIteratorString() throws Exception {
+    // first, populate the aggregator via sum over scan2
+    scan2.open();
+    StringAggregator agg = new StringAggregator(0, Type.STRING_TYPE, 1, Aggregator.Op.COUNT);
+    try {
+      while (true)
+        agg.mergeTupleIntoGroup(scan2.next());
+    } catch (NoSuchElementException e) {
+      // explicitly ignored
+    }
+
+    DbIterator it = agg.iterator();
+    it.open();
+
+    // verify it has four elements
+    int count = 0;
+    try {
+      while (true) {
+        it.next();
+        count++;
+      }
+    } catch (NoSuchElementException e) {
+      // explicitly ignored
+    }
+    assertEquals(4, count);
   }
 
   /**
