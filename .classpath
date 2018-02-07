@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="hws/hw0/src/java"/>
+	<classpathentry kind="src" path="hws/hw0/test"/>
+	<classpathentry kind="src" path="simpledb/src/java"/>
+	<classpathentry kind="src" path="simpledb/test"/>
+	<classpathentry kind="lib" path="hws/hw0/lib/ant-contrib-1.0b3.jar"/>
+	<classpathentry kind="lib" path="hws/hw0/lib/junit-4.5.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/ant-contrib-1.0b3.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/javassist-3.16.1-GA.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/jline-0.9.94.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/junit-4.5.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/jzlib-1.0.7.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/mina-core-2.0.4.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/mina-filter-compression-2.0.4.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/slf4j-api-1.6.1.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/slf4j-log4j12-1.6.1.jar"/>
+	<classpathentry kind="lib" path="simpledb/lib/zql.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -5,7 +5,7 @@ import java.io.*;
 /**
  * Interface for values of fields in tuples in SimpleDB.
  */
-public interface Field extends Serializable{
+public interface Field<T> extends Serializable{ //changed Field to Field<T>
     /**
      * Write the bytes representing this field to the specified
      * DataOutputStream.
@@ -20,7 +20,7 @@ public interface Field extends Serializable{
      * @param value The value to compare this Field to
      * @return Whether or not the comparison yields true.
      */
-    public boolean compare(Predicate.Op op, Field value);
+    public boolean compare(Predicate.Op op, Field<T> value); //changed Field to Field<T>
 
     /**
      * Returns the type of this field (see {@link Type#INT_TYPE} or {@link Type#STRING_TYPE}

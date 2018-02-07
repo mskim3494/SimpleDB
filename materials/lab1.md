@@ -358,7 +358,11 @@ future labs.
 
 <p>
 
+<<<<<<< HEAD
 You may also wish to consult the [JavaDoc](http://people.cs.uchicago.edu/~aelmore/simple/) for SimpleDB.
+=======
+You may also wish to consult the [JavaDoc](http://db.csail.mit.edu/6.830/simpledb/doc) for SimpleDB.
+>>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
 
 ###  2.1. The Database Class 
 
@@ -373,7 +377,11 @@ integer, string) implement.  `Tuple` objects are created by the
 underlying access methods (e.g., heap files, or B-trees), as described in
 the next section.  Tuples also have a type (or schema), called a _tuple
 descriptor_, represented by a `TupleDesc` object.  This
+<<<<<<< HEAD
 object consists of a collection of `TDItem` objects, one per field
+=======
+object consists of a collection of `Type` objects, one per field
+>>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
 in the tuple, each of which describes the type of the corresponding field.
 
 ### Exercise 1

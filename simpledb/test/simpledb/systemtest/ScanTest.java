@@ -103,7 +103,6 @@ public class ScanTest extends SimpleDbTestBase {
         SystemTestUtil.matchTuples(table, tuples);
         assertEquals(0, table.readCount);
     }
-
     /** Make test compatible with older version of ant. */
     public static junit.framework.Test suite() {
         return new junit.framework.JUnit4TestAdapter(ScanTest.class);

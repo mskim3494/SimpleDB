@@ -2,6 +2,8 @@ package simpledb;
 
 import java.util.*;
 import java.io.*;
+import java.lang.Math;
+
 
 /**
  * Each instance of HeapPage stores data for one page of HeapFiles and 
@@ -15,9 +17,9 @@ public class HeapPage implements Page {
 
     final HeapPageId pid;
     final TupleDesc td;
-    final byte header[];
+    final byte header[]; //to store header bits indicating whether a slot is empty
     final Tuple tuples[];
-    final int numSlots;
+    final int numSlots; //number of tuple slots this page can store
 
     byte[] oldData;
     private final Byte oldDataLock=new Byte((byte)0);
@@ -44,17 +46,19 @@ public class HeapPage implements Page {
         this.numSlots = getNumTuples();
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
 
-        // allocate and read the header slots of this page
+        // allocate a proper number of bytes for header[]
         header = new byte[getHeaderSize()];
+        //read the header slots of this page from dis.
         for (int i=0; i<header.length; i++)
             header[i] = dis.readByte();
         
+        // allocate a proper number of bytes for tuples[]
         tuples = new Tuple[numSlots];
         try{
             // allocate and read the actual records of this page
             for (int i=0; i<tuples.length; i++)
                 tuples[i] = readNextTuple(dis,i);
-        }catch(NoSuchElementException e){
+        } catch(NoSuchElementException e){
             e.printStackTrace();
         }
         dis.close();
@@ -66,20 +70,17 @@ public class HeapPage implements Page {
         @return the number of tuples on this page
     */
     private int getNumTuples() {        
-        // some code goes here
-        return 0;
-
+    	// formula as suggested in lab1.md
+    	return (int) Math.floor(BufferPool.getPageSize()*8) / (td.getSize() * 8 + 1);
     }
 
     /**
      * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
-    private int getHeaderSize() {        
-        
-        // some code goes here
-        return 0;
-                 
+    private int getHeaderSize() {
+    	// formula as suggested in lab1.md
+    	return (int)Math.ceil(this.numSlots / 8.0);
     }
     
     /** Return a view of this page before it was modified
@@ -111,8 +112,7 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    // some code goes here
-    throw new UnsupportedOperationException("implement this");
+    	return pid;
     }
 
     /**
@@ -120,15 +120,14 @@ public class HeapPage implements Page {
      */
     private Tuple readNextTuple(DataInputStream dis, int slotId) throws NoSuchElementException {
         // if associated bit is not set, read forward to the next tuple, and
-        // return null.
-        if (!isSlotUsed(slotId)) {
-            for (int i=0; i<td.getSize(); i++) {
+        // return null.	
+        for (int i=0; i<td.getSize(); i++) {
                 try {
                     dis.readByte();
                 } catch (IOException e) {
                     throw new NoSuchElementException("error reading empty tuple");
                 }
-            }
+            
             return null;
         }
 
@@ -273,7 +272,7 @@ public class HeapPage implements Page {
      */
     public TransactionId isDirty() {
         // some code goes here
-	// Not necessary for lab1
+    	// Not necessary for lab1
         return null;      
     }
 
@@ -281,16 +280,42 @@ public class HeapPage implements Page {
      * Returns the number of empty slots on this page.
      */
     public int getNumEmptySlots() {
-        // some code goes here
-        return 0;
+    	// count the number of 1-bits in the header
+    	int onebits = 0;
+    	for (int i=0; i<header.length; i++) { //for each byte in header
+    		byte abyte = header[i];
+    		for (int j=0; j<8; j++)  {//for each bit of the byte
+    			
+    			//the bit index (i*8+j) should be less than the num of tuples,
+    			//as the last bit used in the header would have index numSlots-1 
+    			if (i*8 + j < this.numSlots) {
+    				//create a mask and perform & operation to filter out the bit of interest
+    				//then, right shift back to get either 0 or 1 only.
+	    			int bit = ((int) abyte & (1 << j)) >> j;
+	    			onebits += bit; //add 0 or 1 to the count
+    			}
+    		}
+    	}
+    	
+    	//total num of slots - occupied slots = num of empty slots
+        return this.numSlots - onebits;
     }
 
     /**
      * Returns true if associated slot on this page is filled.
      */
     public boolean isSlotUsed(int i) {
-        // some code goes here
-        return false;
+
+    	//given i is the slot index, split the information into
+    	//the byteindex in the header and which bit in the byte is the correct one
+    	int headerByteIndex = (int)(i / 8);
+    	int bitIndex = i % 8;
+    	//then, using that information, extract the proper bit indicating
+    	//whether the tuple slot is currently used
+    	int abyte = header[headerByteIndex];    	
+    	int bit = ((int) abyte & (1 << bitIndex)) >> bitIndex;
+    	
+        return bit == 1;
     }
 
     /**
@@ -306,8 +331,16 @@ public class HeapPage implements Page {
      * (note that this iterator shouldn't return tuples in empty slots!)
      */
     public Iterator<Tuple> iterator() {
-        // some code goes here
-        return null;
+        
+    	//to build an iterator, an iterable needs to be created
+    	//initialize an ArrayList and start adding tuples
+    	ArrayList<Tuple> al = new ArrayList<Tuple>();
+    	for (int i=0; i<this.numSlots;i++) {
+    		if (isSlotUsed(i))  //only add tuple corresponding to used slots
+    			al.add(tuples[i]);
+    	}
+    	
+        return al.iterator();
     }
 
 }

@@ -17,13 +17,66 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Threadsafe
  */
 public class Catalog {
-
+	/**
+	 * Helper class within the catalog that represents a table,
+	 * similar to TDItems in TupleDesc to facilitate organizing
+	 * tables within the catalog
+	 *
+	 */
+	private class Table {
+		// although name and id can be retrieved from file, they are
+		// stored separately for convenient access and easy iteration
+		private String name;
+		private String keyField;
+		private int id;
+		private TupleDesc schema;
+		private DbFile file;
+		
+		public Table(String name, int id, String keyField, TupleDesc schema, DbFile file) {
+			this.name = name;
+			this.id = id;
+			this.keyField = keyField;
+			this.schema = schema;
+			this.file = file;
+		}
+		public String getName() {
+			return this.name;
+		}
+		public int getId() {
+			return this.id;
+		}
+		public String getKeyField() {
+			return this.keyField;
+		}
+		public TupleDesc getSchema() {
+			return this.schema;
+		}
+		public DbFile getFile() {
+			return this.file;
+		}
+		// Instead of making separate setX(), made a single method to reset tables
+		// This is done so that separate elements within the table cannot be randomly changed
+		void resetTable(int id, String keyField, TupleDesc schema, DbFile file) {
+			this.id = id;
+			this.keyField = keyField;
+			this.schema = schema;
+			this.file = file;
+		}
+		void resetTable(String name, String keyField, TupleDesc schema, DbFile file) {
+			this.name = name;
+			this.keyField = keyField;
+			this.schema = schema;
+			this.file = file;
+		}
+	}
+	// Using the table helper class, we have a list of tables 
+	private ArrayList<Table> tables;
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
-        // some code goes here
+        tables = new ArrayList<Table>();
     }
 
     /**
@@ -36,7 +89,26 @@ public class Catalog {
      * @param pkeyField the name of the primary key field
      */
     public void addTable(DbFile file, String name, String pkeyField) {
-        // some code goes here
+    		if (name == null) {
+    			return;
+    		} 
+    		int id = file.getId();
+    		if (tables.size() != 0) {
+	    		for(int i=0; i<tables.size(); i++) {
+	    			// check for duplicate name tables
+	    			if(tables.get(i).getName() == name) {
+	    				tables.get(i).resetTable(file.getId(), pkeyField, file.getTupleDesc(), file);
+	    				return; // update the table
+	    			}
+	    			if(tables.get(i).getId() == id) { // there maybe duplicate ids
+	    				tables.get(i).resetTable(name,  pkeyField, file.getTupleDesc(), file);
+	    				return;
+	    			}
+	    		}
+    		}
+        // otherwise add new table
+        TupleDesc schema = file.getTupleDesc();
+        tables.add(new Table(name, id, pkeyField, schema, file));
     }
 
     public void addTable(DbFile file, String name) {
@@ -59,8 +131,13 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) throws NoSuchElementException {
-        // some code goes here
-        return 0;
+	    	for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getName() == name) {
+				return tables.get(i).getId();
+			}
+		}
+	    	// table does not exist in the catalog
+        throw new NoSuchElementException();
     }
 
     /**
@@ -70,8 +147,13 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+	    	for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getId() == tableid) {
+				return tables.get(i).getSchema();
+			}
+		}
+	    	// table does not exist in the catalog
+	    	throw new NoSuchElementException();
     }
 
     /**
@@ -81,28 +163,48 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+	    	for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getId() == tableid) {
+				return tables.get(i).getFile();
+			}
+		}
+	    	// table does not exist in the catalog
+	    	throw new NoSuchElementException();
     }
 
     public String getPrimaryKey(int tableid) {
-        // some code goes here
-        return null;
+	    	for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getId() == tableid) {
+				return tables.get(i).getKeyField();
+			}
+		}
+	    	// table does not exist in the catalog
+	    	throw new NoSuchElementException();
     }
 
     public Iterator<Integer> tableIdIterator() {
-        // some code goes here
-        return null;
+    	// create an iterator that includes all of the tableids
+        ArrayList<Integer> itr = new ArrayList<Integer>();
+	    	for(int i=0; i<tables.size(); i++) {
+			itr.add(tables.get(i).getId());
+		}
+	    	return itr.iterator();
     }
 
     public String getTableName(int id) {
-        // some code goes here
-        return null;
+    		for(int i=0; i<tables.size(); i++) {
+			if(tables.get(i).getId() == id) {
+				return tables.get(i).getName();
+			}
+		}
+    		// table with given id does not exist
+    		return null;
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
-        // some code goes here
+        tables = null;
+        tables = new ArrayList<Table>();
     }
     
     /**

@@ -2,6 +2,9 @@ package simpledb;
 
 import java.util.*;
 
+//added
+import simpledb.HeapFile.HfIterator;
+
 /**
  * SeqScan is an implementation of a sequential scan access method that reads
  * each tuple of a table in no particular order (e.g., as they are laid out on
@@ -10,7 +13,14 @@ import java.util.*;
 public class SeqScan implements DbIterator {
 
     private static final long serialVersionUID = 1L;
-
+    
+    private HfIterator i = null;
+    private TupleDesc td = null;
+    private int tableid;
+    private String tableAlias;
+    private TransactionId tid;
+    
+    
     /**
      * Creates a sequential scan over the specified table as a part of the
      * specified transaction.
@@ -28,7 +38,13 @@ public class SeqScan implements DbIterator {
      *            tableAlias.null, or null.null).
      */
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
-        // some code goes here
+    	this.tid = tid;
+    	this.tableid = tableid;  	
+    	this.tableAlias = tableAlias;
+    }
+    
+    public SeqScan(TransactionId tid, int tableid) {
+        this(tid, tableid, Database.getCatalog().getTableName(tableid));
     }
 
     /**
@@ -45,8 +61,7 @@ public class SeqScan implements DbIterator {
      * */
     public String getAlias()
     {
-        // some code goes here
-        return null;
+    	return this.tableAlias;
     }
 
     /**
@@ -62,15 +77,16 @@ public class SeqScan implements DbIterator {
      *            tableAlias.null, or null.null).
      */
     public void reset(int tableid, String tableAlias) {
-        // some code goes here
-    }
-
-    public SeqScan(TransactionId tid, int tableid) {
-        this(tid, tableid, Database.getCatalog().getTableName(tableid));
+    	this.tableid = tableid;  	
+    	this.tableAlias = tableAlias;
     }
 
     public void open() throws DbException, TransactionAbortedException {
-        // some code goes here
+		// get a heapfile associated with this tableid from catalog
+		HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(this.tableid);
+		// borrow from HeapFile's iterator and run its open() method.
+		this.i = (HfIterator) hf.iterator(this.tid);
+		this.i.open();
     }
 
     /**
@@ -83,27 +99,26 @@ public class SeqScan implements DbIterator {
      *         prefixed with the tableAlias string from the constructor.
      */
     public TupleDesc getTupleDesc() {
-        // some code goes here
-        return null;
+    	return Database.getCatalog().getTupleDesc(this.tableid);
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
-        // some code goes here
-        return false;
+        return this.i.hasNext();
     }
 
     public Tuple next() throws NoSuchElementException,
             TransactionAbortedException, DbException {
-        // some code goes here
-        return null;
+        return this.i.next();
     }
 
     public void close() {
-        // some code goes here
+    		this.i.close();
+    		this.i = null;
     }
 
     public void rewind() throws DbException, NoSuchElementException,
             TransactionAbortedException {
-        // some code goes here
+    	close();
+    	open();
     }
 }

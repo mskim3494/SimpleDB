@@ -17,11 +17,22 @@ public class TupleDescTest extends SimpleDbTestBase {
      */
     @Test public void combine() {
         TupleDesc td1, td2, td3;
+<<<<<<< HEAD
 
         td1 = Utility.getTupleDesc(1, "td1");
         td2 = Utility.getTupleDesc(2, "td2");
 
         // test td1.combine(td2)
+=======
+        
+        //System.out.println("initializing td1");
+        td1 = Utility.getTupleDesc(1, "td1");
+        //System.out.println("initializing td1");
+        td2 = Utility.getTupleDesc(2, "td2");
+
+        // test td1.combine(td2)
+        //System.out.println("td1 and td2's numfields: " + td1.numFields() + " " + td2.numFields());
+>>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
         td3 = TupleDesc.merge(td1, td2);
         assertEquals(3 , td3.numFields());
         assertEquals(3 * Type.INT_TYPE.getLen(), td3.getSize());
