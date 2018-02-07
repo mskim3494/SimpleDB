@@ -8,6 +8,10 @@ import java.util.*;
 public class Join extends Operator {
 
     private static final long serialVersionUID = 1L;
+    private JoinPredicate p;
+    private DbIterator child1;
+    private DbIterator child2;
+    private Tuple tcurr; //for tracking purposes
 
     /**
      * Constructor. Accepts to children to join and the predicate to join them
@@ -21,12 +25,14 @@ public class Join extends Operator {
      *            Iterator for the right(inner) relation to join
      */
     public Join(JoinPredicate p, DbIterator child1, DbIterator child2) {
-        // some code goes here
+        this.p = p;
+        this.child1 = child1;
+        this.child2 = child2;
+        this.tcurr = null;
     }
 
     public JoinPredicate getJoinPredicate() {
-        // some code goes here
-        return null;
+        return this.p;
     }
 
     /**
@@ -35,8 +41,7 @@ public class Join extends Operator {
      *       alias or table name.
      * */
     public String getJoinField1Name() {
-        // some code goes here
-        return null;
+        return child1.getTupleDesc().getFieldName(p.getField1());
     }
 
     /**
@@ -45,8 +50,7 @@ public class Join extends Operator {
      *       alias or table name.
      * */
     public String getJoinField2Name() {
-        // some code goes here
-        return null;
+        return child2.getTupleDesc().getFieldName(p.getField2());
     }
 
     /**
@@ -55,20 +59,27 @@ public class Join extends Operator {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return TupleDesc.merge(this.child1.getTupleDesc(), this.child2.getTupleDesc());
     }
 
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
-        // some code goes here
+        super.open();
+        this.child1.open();
+        this.child2.open();
     }
 
     public void close() {
-        // some code goes here
+        super.close();
+        this.child1.close();
+        this.child2.close();
+        this.tcurr = null;
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
-        // some code goes here
+        this.child1.rewind();
+        this.child2.rewind();
+        this.tcurr = null;
     }
 
     /**
@@ -90,19 +101,57 @@ public class Join extends Operator {
      * @see JoinPredicate#filter
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-        // some code goes here
+        if (tcurr == null) {
+        		if(this.child1.hasNext()) {
+        			tcurr = this.child1.next();
+        		}
+        }
+        // begin nested loop join
+        while(this.child1.hasNext() || this.tcurr != null) {
+        		while(this.child2.hasNext()) {
+        			Tuple tjoin = this.child2.next();
+        			if(this.p.filter(tcurr, tjoin)) {
+        				// join condition matches, so need to create new tuple to return
+        				Tuple ret = new Tuple(this.getTupleDesc());
+        				Iterator<Field> fieldIter = tcurr.fields();
+        				int retpos = 0;
+        				// set fields of first tuple
+        				while(fieldIter.hasNext()) {
+        					ret.setField(retpos++, fieldIter.next());
+        				}
+        				// set fields of second tuple
+        				fieldIter = tjoin.fields();
+        				while(fieldIter.hasNext()) {
+        					ret.setField(retpos++, fieldIter.next());
+        				}
+        				return ret;
+        			}
+        			// no match, get next tuple from child1
+        			if (this.child1.hasNext()) {
+        				tcurr = this.child1.next();
+        			} else {
+        				return null;
+        			}
+                this.child2.rewind();
+        		}
+        }
+        // shouldnt get here
         return null;
+        
     }
 
     @Override
     public DbIterator[] getChildren() {
-        // some code goes here
-        return null;
+        DbIterator[] ret = new DbIterator[2];
+        ret[0] = child1;
+        ret[1] = child2;
+        return ret;
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
-        // some code goes here
+        child1 = children[0];
+        child2 = children[1];
     }
 
 }
