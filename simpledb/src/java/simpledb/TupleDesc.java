@@ -102,6 +102,7 @@ public class TupleDesc implements Serializable {
     public String getFieldName(int i) throws NoSuchElementException {
         return tditems.get(i).fieldName;
     }
+    /**
      * Gets the type of the ith field of this TupleDesc.
      * @param i
      *            The index of the field to get the type of. It must be a valid

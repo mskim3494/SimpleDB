@@ -8,7 +8,9 @@ import java.util.*;
 public class Filter extends Operator {
 
     private static final long serialVersionUID = 1L;
-
+    private Predicate p;
+    private DbIterator child;
+    private DbIterator[] children;
     /**
      * Constructor accepts a predicate to apply and a child operator to read
      * tuples to filter from.
@@ -19,30 +21,35 @@ public class Filter extends Operator {
      *            The child operator
      */
     public Filter(Predicate p, DbIterator child) {
-        // some code goes here
+        this.p = p;
+        this.child = child;
+        this.children = new DbIterator[1];
+        this.children[0] = child;
     }
 
     public Predicate getPredicate() {
         // some code goes here
-        return null;
+        return this.p;
     }
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return this.child.getTupleDesc();
     }
 
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
-        // some code goes here
+    		super.open();
+        this.child.open();
     }
 
     public void close() {
-        // some code goes here
+    		super.close();
+        this.child.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
-        // some code goes here
+        this.child.rewind();
     }
 
     /**
@@ -56,19 +63,24 @@ public class Filter extends Operator {
      */
     protected Tuple fetchNext() throws NoSuchElementException,
             TransactionAbortedException, DbException {
-        // some code goes here
-        return null;
+        if(this.child.hasNext()) {
+        		Tuple temp = this.child.next();
+        		if(this.p.filter(temp)) {
+        			return temp;
+        		}
+        }
+        return null; // does not match
     }
 
     @Override
     public DbIterator[] getChildren() {
         // some code goes here
-        return null;
+        return this.children;
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
-        // some code goes here
+        this.children = children;
     }
 
 }

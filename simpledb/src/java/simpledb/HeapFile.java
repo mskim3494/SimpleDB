@@ -14,13 +14,11 @@ import java.util.*;
  * @author Sam Madden
  */
 public class HeapFile implements DbFile {
-<<<<<<< HEAD
 
-=======
 	private File file;
 	private TupleDesc td;
 	private int tableid;
->>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
+
     /**
      * Constructs a heap file backed by the specified file.
      * 
@@ -29,13 +27,9 @@ public class HeapFile implements DbFile {
      *            file.
      */
     public HeapFile(File f, TupleDesc td) {
-<<<<<<< HEAD
-        // some code goes here
-=======
         this.file = f;
         this.td = td;
         this.tableid = this.file.getAbsoluteFile().hashCode();
->>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
     }
 
     /**
@@ -44,12 +38,7 @@ public class HeapFile implements DbFile {
      * @return the File backing this HeapFile on disk.
      */
     public File getFile() {
-<<<<<<< HEAD
-        // some code goes here
-        return null;
-=======
         return this.file;
->>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
     }
 
     /**
@@ -62,12 +51,7 @@ public class HeapFile implements DbFile {
      * @return an ID uniquely identifying this HeapFile.
      */
     public int getId() {
-<<<<<<< HEAD
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
-=======
         return this.tableid;
->>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
     }
 
     /**
@@ -76,20 +60,11 @@ public class HeapFile implements DbFile {
      * @return TupleDesc of this DbFile.
      */
     public TupleDesc getTupleDesc() {
-<<<<<<< HEAD
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
-=======
         return this.td;
->>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
     }
 
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
-<<<<<<< HEAD
-        // some code goes here
-        return null;
-=======
 		//prepare an offset to start reading the file with
     		int offset = BufferPool.getPageSize() * pid.getPageNumber();
     		//buffer to store the reads
@@ -115,7 +90,6 @@ public class HeapFile implements DbFile {
 		}
 		// shouldn't get here
 		return ret;
->>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
     }
 
     // see DbFile.java for javadocs
@@ -128,13 +102,8 @@ public class HeapFile implements DbFile {
      * Returns the number of pages in this HeapFile.
      */
     public int numPages() {
-<<<<<<< HEAD
-        // some code goes here
-        return 0;
-=======
         // formula as suggested in lab1.md
         return (int) Math.ceil(this.file.length()/BufferPool.getPageSize());
->>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
     }
 
     // see DbFile.java for javadocs
@@ -155,12 +124,6 @@ public class HeapFile implements DbFile {
 
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
-<<<<<<< HEAD
-        // some code goes here
-        return null;
-    }
-
-=======
         return new HfIterator(this, tid);
     }
     
@@ -234,6 +197,5 @@ public class HeapFile implements DbFile {
 	        this.currPageNo = 0;
 	    }
     }
->>>>>>> acd8851c7d04e8e8c7dcebb6a063013b5e8fcf41
 }
 
