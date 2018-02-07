@@ -39,7 +39,6 @@ public class Filter extends Operator {
     		if(this.child == null) throw new NoSuchElementException();
 	    	super.open();	
 	    	this.child.open();
-	    	System.out.println("opened!!!");
     }
 
     public void close() {
@@ -63,7 +62,7 @@ public class Filter extends Operator {
     protected Tuple fetchNext() throws NoSuchElementException,
             TransactionAbortedException, DbException {
         if(this.child == null) throw new NoSuchElementException();
-    		if(this.child.hasNext()) {
+    		while(this.child.hasNext()) {
         		Tuple temp = this.child.next();
         		if(this.p.filter(temp)) {
         			return temp;
