@@ -1,0 +1,25 @@
+Describe any design decisions you made, including your choice of page
+eviction policy. If you used something other than a nested-loops join,
+describe the tradeoffs of the algorithm you chose.
+BufferPool eviction policy:
+We decided to evict the first page that is dirty. Possibly, if we had more time we would have implemented an LRU.
+Most of the design follows the instructions on the lab2.md. We did not have to deviate from the already provided API, so we simply extended our implementation from lab1. There were no considerable changes.
+
+
+Discuss and justify any changes you made to the API.
+N/A
+
+Describe any missing or incomplete elements of your code.
+All tests provided for lab2 pass, and all methods that are suggested to be implemented are written.
+
+
+Describe how your partners split the work, but remember both are responsible to
+understand how all parts of the code works.
+Since we were both pressed for time (as midterm week overlapped with this lab) we were unable to get together and do the lab together as much as we desired. As a result, communicating was key in making this lab work. Every time one person finished or significantly updated a part of the code, it was immediately pushed and communicated. For this reason, it was empirical that we worked on different sections of the lab wherever possible, and for overlapping sections we organized coding sessions with constant communication over some form of messaging. Debugging was conducted jointly, which ensured that both partners had good understanding of the code and what could cause problems. 
+
+
+
+Describe how long you spent on the lab, and whether there was anything
+you found particularly difficult or confusing.
+Approximately 7 hours each to complete the bulk of the lab. Most of the time was spend debugging the code, since the implementation was straight forward. What happened on a consistent basis was that the tests implemented many methods or classes that we were not familiar with, and had to go through the API to understand where the error lied. 
+

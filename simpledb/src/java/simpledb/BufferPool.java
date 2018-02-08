@@ -233,7 +233,9 @@ public class BufferPool {
         // some code goes here
         // not necessary for lab1
     		for(int i=0; i<pages.length; i++) {
-    			flushPage(pages[i].getId());
+    			if(pages[i] != null) {
+    				flushPage(pages[i].getId());
+    			}
     		}
     }
 
