@@ -82,7 +82,7 @@ public class BufferPool {
 	    	} 
 	    	
 	    	if(isFull()) {
-	    		this.evictPage(); // in future lab
+	    		this.evictPage(); 
 	    	}
 	    	
 	    	//if no page with the pid is found, read page from disk using HeapFile
@@ -263,6 +263,7 @@ public class BufferPool {
         // not necessary for lab1
     		int i = getIndex(pid);
     		if(pages[i] != null && pages[i].isDirty() != null) {
+    			// if page exists and is dirty, write
     			Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(pages[i]);
     			pages[i].markDirty(false, null);
     		}
@@ -284,12 +285,13 @@ public class BufferPool {
         // not necessary for lab1
     		for(int i=0; i<pages.length; i++) {
     			if(pages[i] != null && pages[i].isDirty() != null) {
+    				// evict first page that is dirty. flush before discarding.
     				PageId pid = pages[i].getId();
     				try {
-						flushPage(pid);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					flushPage(pid);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
     				discardPage(pid);
     				break;
     			}

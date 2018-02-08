@@ -16,6 +16,7 @@ public class Insert extends Operator {
     private int tableid;
     private int count;
     private TupleDesc td;
+    // flag to mark if it has been called 
     private boolean inserted;
     
     /**
@@ -38,8 +39,8 @@ public class Insert extends Operator {
         this.child = child;
         this.tableid = tableid;
         this.inserted = false;
-        
-        String[] name = new String[] {"Inserted"};
+        // this is done in advance, also used for getTupleDesc()
+        String[] name = new String[] {"Inserted Count"};
 	    	Type[] type = new Type[] {Type.INT_TYPE};
 	    	this.td = new TupleDesc(type, name);
     }

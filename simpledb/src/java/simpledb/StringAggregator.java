@@ -61,6 +61,7 @@ public class StringAggregator implements Aggregator {
         TupleDesc desc;
         String[] names;
 	    	Type[] types;
+	    	// these will be the TupleDesc to return
 	    	if (gbfield == Aggregator.NO_GROUPING){
 	    		names = new String[] {"aggregateVal"};
 	    		types = new Type[] {Type.INT_TYPE};
@@ -71,6 +72,7 @@ public class StringAggregator implements Aggregator {
 	    	desc = new TupleDesc(types, names);
 	    	
 	    	Tuple toAdd;
+	    	// iterate over the GROUP BY entries and make the tuples
 	    	Iterator<Map.Entry<Field, Integer>> it = gbcount.entrySet().iterator();
 	    	Map.Entry<Field, Integer> nextfield;
 	    	int aggregateVal = 0;

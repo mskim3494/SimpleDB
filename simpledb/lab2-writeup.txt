@@ -22,4 +22,7 @@ Since we were both pressed for time (as midterm week overlapped with this lab) w
 Describe how long you spent on the lab, and whether there was anything
 you found particularly difficult or confusing.
 Approximately 7 hours each to complete the bulk of the lab. Most of the time was spend debugging the code, since the implementation was straight forward. What happened on a consistent basis was that the tests implemented many methods or classes that we were not familiar with, and had to go through the API to understand where the error lied. 
+Understanding the API, specifically for Aggregator and Operator were a bit confusing and hard to grasp conceptually.
+Additionally, for future lab2 instructions:
+since HeapFile.writePage() has to be implemented anyway, it might be better to suggest it be written as insertion is implemented so that it won’t be necessary to go through half the lab and have to go back and look at it again.
 

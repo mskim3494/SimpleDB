@@ -150,31 +150,13 @@ public class HeapFile implements DbFile {
     public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException,
             TransactionAbortedException {
         // some code goes here
-    	//will use an iterator of this HeapFile that iterates over all tuples
-	
-//	    	HfIterator it = (HfIterator) this.iterator(tid);
-//	    	Tuple t2 = it.readNext();
-//	    	while (t2 != null) {
-//	    		//check equality of the two tuples (== for reference, equals() for equivalence)
-//	    		if (t.getRecordId().equals(t2.getRecordId())) {
-//	    			it.currPage.deleteTuple(t2); //we found the page where a matching tuple exists, so delete
-//	    			
-//	    			ArrayList<Page> al = new ArrayList<Page>();
-//	    			al.add(it.currPage);
-//	    			return al;
-//	    		}
-//	    		
-//    		//if this tuple didn't match, move onto the next
-//    		t2 = it.readNext();
-//	    	}
+    		// similar to insertTuple, use HeapPage implementation to deleteTuple
 	    	PageId pid = t.getRecordId().getPageId();
         HeapPage hp = (HeapPage) Database.getBufferPool().getPage(tid, pid, null);
         hp.deleteTuple(t);
         ArrayList<Page> al = new ArrayList<Page>();
         al.add(hp);
         return  al;
-    	//if no matching tuple was found, throw exception
-    //	throw new DbException("no tuple can be deleted");
         // not necessary for lab1
     }
 

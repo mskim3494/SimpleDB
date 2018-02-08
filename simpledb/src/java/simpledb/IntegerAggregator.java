@@ -111,6 +111,7 @@ public class IntegerAggregator implements Aggregator {
         TupleDesc desc;
         String[] names;
 	    	Type[] types;
+	    	// make the TupleDesc to return based on description
 	    	if (gbfield == Aggregator.NO_GROUPING){
 	    		names = new String[] {"aggregateVal"};
 	    		types = new Type[] {Type.INT_TYPE};
@@ -119,7 +120,7 @@ public class IntegerAggregator implements Aggregator {
 	    		types = new Type[] {gbfieldtype, Type.INT_TYPE};
 	    	}
 	    	desc = new TupleDesc(types, names);
-	    	
+	    	// iterate over GROUP BY fields and add the tuples
 	    	Tuple toAdd;
 	    	Iterator<Map.Entry<Field, Integer>> it = gbfields.entrySet().iterator();
 	    	Map.Entry<Field, Integer> nextfield;

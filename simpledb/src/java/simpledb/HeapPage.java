@@ -249,14 +249,17 @@ public class HeapPage implements Page {
         // some code goes here
         // not necessary for lab1
     		RecordId todelete = t.getRecordId();
+    		// tuple integrity check
     		if (todelete == null || !this.pid.equals(todelete.getPageId())){
-        		throw new DbException("Tuple not on page.");
+        		throw new DbException("Tuple is empty or not on page.");
         	}
     		int tupleno = todelete.getTupleNumber();
+    		// is tuple valid
     		if (tupleno < 0 || tupleno >= numSlots) {
-    			throw new DbException("Tupleno is wrong");
-    		} if(!isSlotUsed(tupleno)) {
-    			throw new DbException("Tupleno is already deleted");
+    			throw new DbException("Tupleno is wrong.");
+    		} // is tuple on page
+    		if(!isSlotUsed(tupleno)) {
+    			throw new DbException("Tupleno is already deleted.");
     		}
     		this.markSlotUsed(tupleno, false);
     		this.tuples[tupleno] = null;
@@ -341,16 +344,14 @@ public class HeapPage implements Page {
      * Returns true if associated slot on this page is filled.
      */
     public boolean isSlotUsed(int i) {
-
-    	//given i is the slot index, split the information into
-    	//the byteindex in the header and which bit in the byte is the correct one
-    	int headerByteIndex = (int)(i / 8);
-    	int bitIndex = i % 8;
-    	//then, using that information, extract the proper bit indicating
-    	//whether the tuple slot is currently used
-    	int abyte = header[headerByteIndex];    	
-    	int bit = ((int) abyte & (1 << bitIndex)) >> bitIndex;
-    	
+	    	//given i is the slot index, split the information into
+	    	//the byteindex in the header and which bit in the byte is the correct one
+	    	int headerByteIndex = (int)(i / 8);
+	    	int bitIndex = i % 8;
+	    	//then, using that information, extract the proper bit indicating
+	    	//whether the tuple slot is currently used
+	    	int abyte = header[headerByteIndex];    	
+	    	int bit = ((int) abyte & (1 << bitIndex)) >> bitIndex;
         return bit == 1;
     }
 

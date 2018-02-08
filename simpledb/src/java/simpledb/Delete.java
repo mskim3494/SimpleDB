@@ -14,6 +14,7 @@ public class Delete extends Operator {
     private DbIterator child;
     private int count;
     private TupleDesc td;
+    // flag to mark if it has been called 
     private boolean deleted;
 
     /**
@@ -29,7 +30,8 @@ public class Delete extends Operator {
         // some code goes here
     		this.tid = t;
     		this.child = child;
-    		String[] name = new String[] {"Inserted"};
+        // this is done in advance, also used for getTupleDesc()
+    		String[] name = new String[] {"Deleted Count"};
 	    	Type[] type = new Type[] {Type.INT_TYPE};
 	    	this.td = new TupleDesc(type, name);
     }
@@ -84,6 +86,7 @@ public class Delete extends Operator {
 			}
 			this.count++;
 		}
+		// already called, return the results
 		this.deleted = true;
 	    	Tuple ret = new Tuple(this.td);
 	    	ret.setField(0, new IntField(this.count));
