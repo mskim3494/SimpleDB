@@ -96,6 +96,14 @@ public class HeapFile implements DbFile {
     public void writePage(Page page) throws IOException {
         // some code goes here
         // not necessary for lab1
+    		int pageNo = page.getId().getPageNumber();
+        int offset = pageNo * BufferPool.getPageSize();
+        byte[] data = page.getPageData();
+        RandomAccessFile raf = null;
+        raf = new RandomAccessFile(this.file, "rw");
+        raf.seek(offset);
+        raf.write(data,0,BufferPool.getPageSize());
+        raf.close();
     }
 
     /**
@@ -129,13 +137,7 @@ public class HeapFile implements DbFile {
 	    	HeapPageId newPageId = new HeapPageId(this.getId(), this.numPages());
         HeapPage newHP = new HeapPage(newPageId, HeapPage.createEmptyPageData());
         newHP.insertTuple(t);
-        
-        RandomAccessFile raf = new RandomAccessFile(this.file, "rw");
-        int offset = BufferPool.getPageSize() * this.numPages();
-        raf.seek(offset);
-        byte[] data = newHP.getPageData();
-        raf.write(data, 0, BufferPool.getPageSize());
-        raf.close();
+        writePage(newHP);
         ArrayList<Page> al = new ArrayList<Page>();
         al.add(newHP);
         return al;

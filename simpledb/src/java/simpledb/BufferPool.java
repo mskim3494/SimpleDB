@@ -108,8 +108,6 @@ public class BufferPool {
 	    	for (int i=0; i<pages.length;i++) {
 	    		if (pages[i] == null) {
 		    		pages[i] = page;
-		    		System.out.println("being put" + i);
-		    		System.out.println(page.getId());
 		    		break;
 	    		} 
 		} 
@@ -234,7 +232,9 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for lab1
-
+    		for(int i=0; i<pages.length; i++) {
+    			flushPage(pages[i].getId());
+    		}
     }
 
     /** Remove the specific page id from the buffer pool.
@@ -248,6 +248,8 @@ public class BufferPool {
     public synchronized void discardPage(PageId pid) {
         // some code goes here
         // not necessary for lab1
+    		int i = getIndex(pid);
+    		pages[i] = null;
     }
 
     /**
@@ -257,6 +259,11 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for lab1
+    		int i = getIndex(pid);
+    		if(pages[i] != null && pages[i].isDirty() != null) {
+    			Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(pages[i]);
+    			pages[i].markDirty(false, null);
+    		}
     }
 
     /** Write all pages of the specified transaction to disk.
@@ -273,6 +280,18 @@ public class BufferPool {
     private synchronized  void evictPage() throws DbException {
         // some code goes here
         // not necessary for lab1
+    		for(int i=0; i<pages.length; i++) {
+    			if(pages[i] != null && pages[i].isDirty() != null) {
+    				PageId pid = pages[i].getId();
+    				try {
+						flushPage(pid);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+    				discardPage(pid);
+    				break;
+    			}
+    		}
     }
 
 }
