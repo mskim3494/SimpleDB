@@ -2,7 +2,7 @@ Describe any design decisions you made, including your choice of page
 eviction policy. If you used something other than a nested-loops join,
 describe the tradeoffs of the algorithm you chose.
 BufferPool eviction policy:
-We decided to evict the first page that is dirty. Possibly, if we had more time we would have implemented an LRU.
+We implemented a simple LRU policy where each time a page is accessed through getPage(), its count increases by 1. When looking to evict, look for the lowest count value, if dirty write the page, and discard.
 Most of the design follows the instructions on the lab2.md. We did not have to deviate from the already provided API, so we simply extended our implementation from lab1. There were no considerable changes.
 
 

@@ -28,7 +28,7 @@ public class BufferPool {
     public static final int DEFAULT_PAGES = 50;
 
     private Page[] pages;
-    
+    private int[] LRU;
     
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -36,7 +36,8 @@ public class BufferPool {
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-    	pages = new Page[numPages];    	
+    		pages = new Page[numPages];
+    		LRU = new int[numPages];
     }
     
     public static int getPageSize() {
@@ -76,6 +77,7 @@ public class BufferPool {
 	    		if (nextpage != null) {
 	    			//if a matching pageId is found, return that page
 		    		if (nextpage.getId().equals(pid)) {
+		    			LRU[i]++;
 		    			return nextpage;
 		    		}
 	    		} 
@@ -108,6 +110,7 @@ public class BufferPool {
 	    	for (int i=0; i<pages.length;i++) {
 	    		if (pages[i] == null) {
 		    		pages[i] = page;
+		    		LRU[i] = 1;
 		    		break;
 	    		} 
 		} 
@@ -252,6 +255,7 @@ public class BufferPool {
         // not necessary for lab1
     		int i = getIndex(pid);
     		pages[i] = null;
+    		LRU[i] = 0;
     }
 
     /**
@@ -283,19 +287,33 @@ public class BufferPool {
     private synchronized  void evictPage() throws DbException {
         // some code goes here
         // not necessary for lab1
+    		int i = getLRU();
+    		if(pages[i] != null && pages[i].isDirty() != null) {
+				// evict first page that is dirty. flush before discarding.
+			PageId pid = pages[i].getId();
+			try {
+				flushPage(pid);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			discardPage(pid);
+			LRU[i] = 0;
+    		}
+    }
+    
+    // helper function to get LRU page
+    private int getLRU() {
+    		int ret = 0;
+    		int minval = Integer.MAX_VALUE;
     		for(int i=0; i<pages.length; i++) {
-    			if(pages[i] != null && pages[i].isDirty() != null) {
-    				// evict first page that is dirty. flush before discarding.
-    				PageId pid = pages[i].getId();
-    				try {
-					flushPage(pid);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-    				discardPage(pid);
-    				break;
+    			if(pages[i] != null) {
+    				if (LRU[i] < minval) {
+    					ret = i;
+    					minval = LRU[i];
+    				}
     			}
     		}
+    		return ret;
     }
 
 }

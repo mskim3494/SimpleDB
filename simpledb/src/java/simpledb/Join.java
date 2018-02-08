@@ -113,8 +113,6 @@ public class Join extends Operator {
         			Tuple tjoin = this.child2.next();
         			if(this.p.filter(tcurr, tjoin)) {
         				// join condition matches, so need to create new tuple to return
-        				if(this.p.getOperator() == Predicate.Op.EQUALS)
-        					System.out.println("matching tuples!");
         				Tuple ret = new Tuple(this.getTupleDesc());
         				Iterator<Field> fieldIter = tcurr.fields();
         				int retpos = 0;
