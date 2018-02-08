@@ -106,12 +106,15 @@ public class Join extends Operator {
         			tcurr = this.child1.next();
         		}
         }
+        
         // begin nested loop join
         while(this.child1.hasNext() || this.tcurr != null) {
         		while(this.child2.hasNext()) {
         			Tuple tjoin = this.child2.next();
         			if(this.p.filter(tcurr, tjoin)) {
         				// join condition matches, so need to create new tuple to return
+        				if(this.p.getOperator() == Predicate.Op.EQUALS)
+        					System.out.println("matching tuples!");
         				Tuple ret = new Tuple(this.getTupleDesc());
         				Iterator<Field> fieldIter = tcurr.fields();
         				int retpos = 0;
@@ -126,14 +129,14 @@ public class Join extends Operator {
         				}
         				return ret;
         			}
-        			// no match, get next tuple from child1
-        			if (this.child1.hasNext()) {
-        				tcurr = this.child1.next();
-        			} else {
-        				return null;
-        			}
-                this.child2.rewind();
         		}
+    			// no match, get next tuple from child1
+    			if (this.child1.hasNext()) {
+    				tcurr = this.child1.next();
+    				this.child2.rewind();
+    			} else {
+    				return null;
+    			}
         }
         // shouldnt get here
         return null;
