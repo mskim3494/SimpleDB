@@ -115,7 +115,6 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    		System.out.println(this.pid.hashCode());
     		return this.pid;
     }
 
@@ -250,8 +249,15 @@ public class HeapPage implements Page {
         // some code goes here
         // not necessary for lab1
     		RecordId todelete = t.getRecordId();
+    		if (todelete == null || !this.pid.equals(todelete.getPageId())){
+        		throw new DbException("Tuple not on page.");
+        	}
     		int tupleno = todelete.getTupleNumber();
-    		if (tupleno < 0 || tupleno >= numSlots) throw new DbException("Tupleno is wrong");
+    		if (tupleno < 0 || tupleno >= numSlots) {
+    			throw new DbException("Tupleno is wrong");
+    		} if(!isSlotUsed(tupleno)) {
+    			throw new DbException("Tupleno is already deleted");
+    		}
     		this.markSlotUsed(tupleno, false);
     		this.tuples[tupleno] = null;
     }
@@ -269,11 +275,13 @@ public class HeapPage implements Page {
     		if (getNumEmptySlots() == 0 || !(t.getTupleDesc().equals(this.td)))
             throw new DbException("HeapPage is full or TupleDesc does not match.");
         int i = 0;
-        for (i = 0; isSlotUsed(i); i++) {
-	        markSlotUsed(i, true);
-	        tuples[i] = t;
-	        tuples[i].resetTupleDesc(td);
-	        tuples[i].setRecordId(new RecordId(pid, i));
+	    for (i = 0; i < this.numSlots; i++) {
+	    		if (!isSlotUsed(i)) {
+	            markSlotUsed(i, true);
+		        tuples[i] = t;
+		        tuples[i].setRecordId(new RecordId(pid, i));
+		        break;
+	    		}
         }
     }
 
@@ -319,10 +327,14 @@ public class HeapPage implements Page {
 	    			onebits += bit; //add 0 or 1 to the count
     			}
     		}
+    		
+    		
     	}
     	
     	//total num of slots - occupied slots = num of empty slots
         return this.numSlots - onebits;
+        
+        
     }
 
     /**
