@@ -110,7 +110,23 @@ public class HeapFile implements DbFile {
     public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
-        return null;
+    	int pageNo = 0;
+    	HeapPage hp = null;
+    	HeapPageId hpid = null;
+    	// a stupid approach of trying to iterate over pages.. even if not in buffer pool
+    	for (pageNo = 0; pageNo < this.numPages(); pageNo++) {
+    		hpid = new HeapPageId(this.tableid, pageNo);
+    		hp = (HeapPage) Database.getBufferPool().getPage(tid, hpid, null);
+    		if (hp.getNumEmptySlots() != 0)
+    			break;
+    	}
+    	//now we have an hp with at least one empty slot
+    	hp.insertTuple(t);
+    	
+    	ArrayList<Page> al = new ArrayList<Page>();
+    	al.add(hp); //only one page will be added.. right? for a single tuple insertion
+    	
+        return al;
         // not necessary for lab1
     }
 
@@ -118,7 +134,26 @@ public class HeapFile implements DbFile {
     public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException,
             TransactionAbortedException {
         // some code goes here
-        return null;
+    	//will use an iterator of this HeapFile that iterates over all tuples
+
+    	HfIterator it = (HfIterator) this.iterator(tid);
+    	Tuple t2 = it.readNext();
+    	while (t2 != null) {
+    		//check equality of the two tuples (== for reference, equals() for equivalence)
+    		if (t.getRecordId().equals(t2.getRecordId())) {
+    			it.currPage.deleteTuple(t2); //we found the page where a matching tuple exists, so delete
+    			
+    			ArrayList<Page> al = new ArrayList<Page>();
+    			al.add(it.currPage);
+    			return al;
+    		}
+    		
+    		//if this tuple didn't match, move onto the next
+    		t2 = it.readNext();
+    	}
+    	
+    	//if no matching tuple was found, throw exception
+    	throw new DbException("no tuple can be deleted");
         // not necessary for lab1
     }
 
