@@ -41,7 +41,7 @@ public class HeapPageId implements PageId {
     public int hashCode() {
     		//concatenate tableId and pageNo as required
     		String temp = "" + this.tableId + this.pgNo;
-    		return Integer.parseInt(temp);
+    		return temp.hashCode();
     }
 
     /**

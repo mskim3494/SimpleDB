@@ -74,7 +74,7 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
     	// formula as suggested in lab1.md
-    	return (int) Math.floor(BufferPool.getPageSize()*8) / (td.getSize() * 8 + 1);
+    	return (int) Math.floor(BufferPool.getPageSize()*8) / (td.getSize() * 8 + 1);	
     }
 
     /**
@@ -115,7 +115,8 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    	return pid;
+    		System.out.println(this.pid.hashCode());
+    		return this.pid;
     }
 
     /**
@@ -124,16 +125,17 @@ public class HeapPage implements Page {
     private Tuple readNextTuple(DataInputStream dis, int slotId) throws NoSuchElementException {
         // if associated bit is not set, read forward to the next tuple, and
         // return null.	
-        for (int i=0; i<td.getSize(); i++) {
-                try {
-                    dis.readByte();
-                } catch (IOException e) {
-                    throw new NoSuchElementException("error reading empty tuple");
-                }
-            
-            return null;
-        }
-
+    		if (!isSlotUsed(slotId)) {
+	        for (int i=0; i<td.getSize(); i++) {
+	                try {
+	                    dis.readByte();
+	                } catch (IOException e) {
+	                    throw new NoSuchElementException("error reading empty tuple");
+	                }
+	            
+	            return null;
+	        }
+    		}
         // read fields in the tuple
         Tuple t = new Tuple(td);
         RecordId rid = new RecordId(pid, slotId);
@@ -195,7 +197,7 @@ public class HeapPage implements Page {
 
             // non-empty slot
             for (int j=0; j<td.numFields(); j++) {
-                Field f = tuples[i].getField(j);
+            		Field f = tuples[i].getField(j);
                 try {
                     f.serialize(dos);
                 
