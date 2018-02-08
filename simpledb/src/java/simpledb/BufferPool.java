@@ -108,7 +108,7 @@ public class BufferPool {
 	    	for (int i=0; i<pages.length;i++) {
 	    		if (pages[i] == null) {
 		    		pages[i] = page;
-		    		System.out.println("being put");
+		    		System.out.println("being put" + i);
 		    		System.out.println(page.getId());
 		    		break;
 	    		} 
