@@ -103,30 +103,44 @@ public class HeapFile implements DbFile {
      */
     public int numPages() {
         // formula as suggested in lab1.md
-        return (int) Math.ceil(this.file.length()/BufferPool.getPageSize());
+        return (int) Math.ceil((double) this.file.length()/BufferPool.getPageSize());
     }
 
     // see DbFile.java for javadocs
     public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
-    	int pageNo = 0;
-    	HeapPage hp = null;
-    	HeapPageId hpid = null;
-    	// a stupid approach of trying to iterate over pages.. even if not in buffer pool
-    	for (pageNo = 0; pageNo < this.numPages(); pageNo++) {
-    		hpid = new HeapPageId(this.tableid, pageNo);
-    		hp = (HeapPage) Database.getBufferPool().getPage(tid, hpid, null);
-    		if (hp.getNumEmptySlots() != 0)
-    			break;
-    	}
-    	//now we have an hp with at least one empty slot
-    	hp.insertTuple(t);
-    	
-    	ArrayList<Page> al = new ArrayList<Page>();
-    	al.add(hp); //only one page will be added.. right? for a single tuple insertion
-    	
+	    	int pageNo = 0;
+	    	HeapPage hp = null;
+	    	HeapPageId hpid = null;
+	    	// a stupid approach of trying to iterate over pages.. even if not in buffer pool
+	    	for (pageNo = 0; pageNo < this.numPages(); pageNo++) {
+	    		hpid = new HeapPageId(this.tableid, pageNo);
+	    		hp = (HeapPage) Database.getBufferPool().getPage(tid, hpid, null);
+	    		if (hp.getNumEmptySlots() != 0) {
+	    			//now we have an hp with at least one empty slot
+	    	    		hp.insertTuple(t);
+	    	    		ArrayList<Page> al = new ArrayList<Page>();
+	    		    	al.add(hp); //only one page will be added.. right? for a single tuple insertion
+	    	        return al;
+	    		}
+	    	}
+	    	// need new page
+	    	HeapPageId newPageId = new HeapPageId(this.getId(), this.numPages());
+        HeapPage newHP = new HeapPage(newPageId, HeapPage.createEmptyPageData());
+        newHP.insertTuple(t);
+        
+        RandomAccessFile raf = new RandomAccessFile(this.file, "rw");
+        int offset = BufferPool.getPageSize() * this.numPages();
+        raf.seek(offset);
+        byte[] data = newHP.getPageData();
+        raf.write(data, 0, BufferPool.getPageSize());
+        raf.close();
+        ArrayList<Page> al = new ArrayList<Page>();
+        al.add(newHP);
         return al;
+	    	
+        
         // not necessary for lab1
     }
 
@@ -135,25 +149,30 @@ public class HeapFile implements DbFile {
             TransactionAbortedException {
         // some code goes here
     	//will use an iterator of this HeapFile that iterates over all tuples
-
-    	HfIterator it = (HfIterator) this.iterator(tid);
-    	Tuple t2 = it.readNext();
-    	while (t2 != null) {
-    		//check equality of the two tuples (== for reference, equals() for equivalence)
-    		if (t.getRecordId().equals(t2.getRecordId())) {
-    			it.currPage.deleteTuple(t2); //we found the page where a matching tuple exists, so delete
-    			
-    			ArrayList<Page> al = new ArrayList<Page>();
-    			al.add(it.currPage);
-    			return al;
-    		}
-    		
-    		//if this tuple didn't match, move onto the next
-    		t2 = it.readNext();
-    	}
-    	
+	
+//	    	HfIterator it = (HfIterator) this.iterator(tid);
+//	    	Tuple t2 = it.readNext();
+//	    	while (t2 != null) {
+//	    		//check equality of the two tuples (== for reference, equals() for equivalence)
+//	    		if (t.getRecordId().equals(t2.getRecordId())) {
+//	    			it.currPage.deleteTuple(t2); //we found the page where a matching tuple exists, so delete
+//	    			
+//	    			ArrayList<Page> al = new ArrayList<Page>();
+//	    			al.add(it.currPage);
+//	    			return al;
+//	    		}
+//	    		
+//    		//if this tuple didn't match, move onto the next
+//    		t2 = it.readNext();
+//	    	}
+	    	PageId pid = t.getRecordId().getPageId();
+        HeapPage hp = (HeapPage) Database.getBufferPool().getPage(tid, pid, null);
+        hp.deleteTuple(t);
+        ArrayList<Page> al = new ArrayList<Page>();
+        al.add(hp);
+        return  al;
     	//if no matching tuple was found, throw exception
-    	throw new DbException("no tuple can be deleted");
+    //	throw new DbException("no tuple can be deleted");
         // not necessary for lab1
     }
 

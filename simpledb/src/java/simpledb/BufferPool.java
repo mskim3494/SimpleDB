@@ -3,6 +3,7 @@ package simpledb;
 import java.io.*;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -79,33 +80,52 @@ public class BufferPool {
 		    		}
 	    		} 
 	    	} 
-	    	//check if full
-	    	boolean isfull = true;
-	    	for (int i=0; i<pages.length; i++) {
-	    		if (pages[i] == null) {
-	    			isfull = false;
-	    			break;
-	    		}
-	    	}
-	    	if(isfull) {
+	    	
+	    	if(isFull()) {
 	    		this.evictPage(); // in future lab
 	    	}
 	    	
-    	//if no page with the pid is found, read page from disk using HeapFile
-    	DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
+	    	//if no page with the pid is found, read page from disk using HeapFile
+	    	DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
 	    Page page = dbfile.readPage(pid);
 	    
 		// put the page in BufferPool's empty slot
-		for (int i=0; i<pages.length;i++) {
+		putPage(page);
+		return page;
+    }
+    // helper function to check if buffer is full
+    private boolean isFull() {
+	    	for (int i=0; i<pages.length; i++) {
+	    		if (pages[i] == null) {
+	    			return false;
+	    		}
+	    	} return true;
+    }
+    
+    // helper function to put page in empty slot
+    // does not check if full, should be done beforehand
+    private void putPage(Page page) {
+	    	for (int i=0; i<pages.length;i++) {
 	    		if (pages[i] == null) {
 		    		pages[i] = page;
+		    		System.out.println("being put");
+		    		System.out.println(page.getId());
 		    		break;
 	    		} 
 		} 
-		
-		return page;
     }
-
+    // -1 for not found, else return index
+    private int getIndex(PageId pid) {
+	    for (int i=0; i<pages.length;i++) {
+			Page nextpage = pages[i];
+			if (nextpage != null) {
+				//if a matching pageId is found, return that page
+		    		if (nextpage.getId().equals(pid)) {
+		    			return i;
+		    		}
+			} 
+		} return -1;
+    }
     /**
      * Releases the lock on a page.
      * Calling this is very risky, and may result in wrong behavior. Think hard
@@ -169,6 +189,14 @@ public class BufferPool {
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+    		DbFile file = Database.getCatalog().getDatabaseFile(tableId);
+        ArrayList<Page> al = file.insertTuple(tid, t);
+        for (int i=0; i<al.size(); i++) {
+            PageId pid = al.get(i).getId();
+            // getPage() already checks if in buffer and evict if necessary
+            this.getPage(tid, pid, null);
+            pages[getIndex(pid)].markDirty(true, tid);
+        }
     }
 
     /**
@@ -188,6 +216,14 @@ public class BufferPool {
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+    		DbFile file = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId());
+    		ArrayList<Page> al = file.deleteTuple(tid, t);
+        for (int i=0; i<al.size(); i++) {
+            PageId pid = al.get(i).getId();
+            // getPage() already checks if in buffer and evict if necessary
+            this.getPage(tid, pid, null);
+            pages[getIndex(pid)].markDirty(true, tid);
+        }
     }
 
     /**
