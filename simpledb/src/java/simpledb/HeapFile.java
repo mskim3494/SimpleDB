@@ -204,7 +204,7 @@ public class HeapFile implements DbFile {
 			// read tuples. Makes use of the already implemented hasNext and next methods
 			if (this.tuples != null) {
 				if(this.tuples.hasNext()) {
-					return this.tuples.next(); // if there is a next tuple, simple return it
+					return this.tuples.next(); // if there is a next tuple, simply return it
 				} else {
 					// will have to move to next page, but since next page might also be empty
 					// iterate until find a page with data or reached the max number of pages
@@ -225,6 +225,44 @@ public class HeapFile implements DbFile {
 			}
 			return null;
 		}
+		
+		//added because it seems necessary to pass BufferPoolWriteTest.handleManyDirtyPages
+		@Override
+		public boolean hasNext() throws DbException, TransactionAbortedException {
+			//System.out.println("HFI.hasNext");
+			if (this.tuples != null) {
+				//System.out.println("this.tuples not null");
+				if(this.tuples.hasNext()) {
+					//System.out.println("has next");
+					return true; // if there is a next tuple, simply return it
+				} else {
+					//System.out.println("doesn't have next");
+					// will have to move to next page, but since next page might also be empty
+					// iterate until find a page with data or reached the max number of pages
+					boolean breakflag = true;
+					while(breakflag) {
+						//System.out.println("HF's numpages: " + this.hf.numPages());
+						if(this.currPageNo < this.hf.numPages() - 1) {
+							HeapPageId currpid = new HeapPageId(this.hf.getId(), ++this.currPageNo);
+							//System.out.println("will try to get a page " + currpid.getPageNumber() + " from buffer");
+							this.currPage = (HeapPage) Database.getBufferPool().getPage(this.tid, currpid, null);
+				            //System.out.println("empty slots for page " + this.currPage.getId().getPageNumber() + " " + this.currPage.getNumEmptySlots());
+							this.tuples = this.currPage.iterator();
+				            //System.out.println("tuples updated to currpid: " + currpid.getPageNumber());
+				            if(this.tuples != null && this.tuples.hasNext()) {
+				            		//System.out.println("returning next");
+				            		return true;
+				            } 
+						} else { // no tuples in remaining pages
+							return false;
+						}
+					}
+				}
+			}
+			return false;
+		}
+		
+		
 		
 		@Override
 		/** If subclasses override this, they should call super.close(). */

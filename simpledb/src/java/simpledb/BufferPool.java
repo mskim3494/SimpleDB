@@ -73,7 +73,8 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
     		//iterate over the pages array 
 	    	for (int i=0; i<pages.length;i++) {
-	    		Page nextpage = pages[i];
+	    		//Page nextpage = pages[i];
+	    		HeapPage nextpage = (HeapPage) pages[i];
 	    		if (nextpage != null) {
 	    			//if a matching pageId is found, return that page
 		    		if (nextpage.getId().equals(pid)) {
@@ -190,13 +191,25 @@ public class BufferPool {
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
-    		DbFile file = Database.getCatalog().getDatabaseFile(tableId);
+    	//System.out.println("BP.inserttuple");
+    	//DbFile file = Database.getCatalog().getDatabaseFile(tableId);
+    	HeapFile file = (HeapFile) Database.getCatalog().getDatabaseFile(tableId);
         ArrayList<Page> al = file.insertTuple(tid, t);
+        //System.out.println("al.size: " + al.size());
+        
         for (int i=0; i<al.size(); i++) {
             PageId pid = al.get(i).getId();
+            
+            
+            HeapPage page = (HeapPage) al.get(i);
+            //System.out.println("page's empty slots " + page.getNumEmptySlots());
             // getPage() already checks if in buffer and evict if necessary
+            this.putPage(page);
             this.getPage(tid, pid, null);
             pages[getIndex(pid)].markDirty(true, tid);
+            
+            //HeapPage page3 = (HeapPage) pages[getIndex(pid)];
+
         }
     }
 
