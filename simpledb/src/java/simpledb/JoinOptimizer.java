@@ -5,6 +5,8 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 
+import simpledb.Predicate.Op;
+
 /**
  * The JoinOptimizer class is responsible for ordering a series of joins
  * optimally, and for selecting the best instantiation of a join for a given
@@ -111,7 +113,15 @@ public class JoinOptimizer {
             // HINT: You may need to use the variable "j" if you implemented
             // a join algorithm that's more complicated than a basic
             // nested-loops join.
-            return -1.0;
+        	
+        	// will implement this based on the following formula provided
+        	//joincost(t1 join t2) = scancost(t1) + ntups(t1) x scancost(t2) //IO cost
+            //        + ntups(t1) x ntups(t2)  //CPU cost
+        	return cost1 + card1 * cost2 + card1 * card2;
+        	
+        	
+        	
+            //return -1.0;
         }
     }
 
@@ -157,6 +167,34 @@ public class JoinOptimizer {
             Map<String, Integer> tableAliasToId) {
         int card = 1;
         // some code goes here
+        
+        /* the test only checks for case 1 of the 3 (equality join with one being primary key at least),
+         * and then asserts that the cardinality just has to be the cardinality of table1 or 2.
+         */
+        //equality join 
+        if (joinOp == Op.EQUALS) {
+        	//with one of the 2 attributes being primary key
+        	if (t1pkey || t2pkey) {
+        		if (t1pkey)
+        			return card1;
+        		if (t2pkey)
+        			return card2; //try to pick the cardinality of where the join attr is the primary key (smaller of the two? maybe?)
+        	}
+        	//with non being a primary key
+        	else {
+        		return (int)(card1*card2*0.3); //just estimate that 0.3 of the cross product would be selected
+        	}
+        }
+        //for range scans
+        else {
+        	return (int)(card1*card2*0.5); //according to instruction this should be larger than the cardinality for equality with no primary key
+        }
+        
+        	
+        
+        
+        
+        
         return card <= 0 ? 1 : card;
     }
 

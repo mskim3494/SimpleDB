@@ -132,7 +132,10 @@ public class Catalog {
      */
     public int getTableId(String name) throws NoSuchElementException {
 	    	for(int i=0; i<tables.size(); i++) {
-			if(tables.get(i).getName() == name) {
+			//if(tables.get(i).getName() == name) {
+	    	//changed for joinOptimizertest, cuz tablenames could not be found if "=" is used
+	    	//see https://piazza.com/class/jbz63ow7styli?cid=414
+	    	if(tables.get(i).getName().equals(name) ) {	
 				return tables.get(i).getId();
 			}
 		}
