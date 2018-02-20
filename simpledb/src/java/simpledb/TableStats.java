@@ -26,7 +26,11 @@ public class TableStats {
     private ArrayList<IntHistogram> intHists;
     private ArrayList<StringHistogram> stringHists;
     
+    private HeapFile hf;
     private TupleDesc td;
+    private int ntups;
+    private int ioCostPerPage;
+    
     //this is needed so that when you want to get field 5, for example,
     //you know which index in one of the histograms to look for
     //e.g. we would know whether the field is int or string,
@@ -104,8 +108,11 @@ public class TableStats {
         // in a single scan of the table.
         // some code goes here
     	
+    	this.ioCostPerPage = ioCostPerPage;
+    	
     	//first, need to initialize HeapFile for tableid
     	HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(tableid);
+    	this.hf = hf;
     	TupleDesc td = Database.getCatalog().getTupleDesc(tableid);
     	this.td = td;
     	Iterator<TDItem> it = td.iterator(); //each TDItem has .fieldName and .fieldType
@@ -167,6 +174,9 @@ public class TableStats {
 			e.printStackTrace();
 		}
     	dbit.close();
+    	this.ntups = counter;
+    	
+    	
     	
     	//Step 2. initialize Histograms for each column
     	intindex = 0;
@@ -243,7 +253,8 @@ public class TableStats {
      */
     public double estimateScanCost() {
         // some code goes here
-        return 0;
+    	return this.hf.numPages() * this.ioCostPerPage;
+        //return 0;
     }
 
     /**
@@ -257,7 +268,8 @@ public class TableStats {
      */
     public int estimateTableCardinality(double selectivityFactor) {
         // some code goes here
-        return 0;
+    	return (int) (this.ntups * selectivityFactor);
+        //return 0;
     }
 
     /**

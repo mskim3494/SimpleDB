@@ -127,7 +127,7 @@ public class IntHistogram {
     		
     		
     		if (op == op.EQUALS) {
-    			System.out.println("returning " + this.hist.get(index) + " / " + this.ntups + " = " + (double) (this.hist.get(index)) / this.ntups);
+    			//System.out.println("returning " + this.hist.get(index) + " / " + this.ntups + " = " + (double) (this.hist.get(index)) / this.ntups);
     			//return (double) (this.hist.get(index) / this.binSize) / this.ntups;
     			return (double) (this.hist.get(index)) / this.ntups;
     			
