@@ -63,6 +63,8 @@ public class IntHistogram {
     //exception: with 10002 you get 10002-2/10 = 1000, index out of bounds
     public int getBinIndex(int v) {
     	//System.out.println(v +"-"+ this.min + " / " + this.binSize + " = " + (v - this.min) / this.binSize);
+    	
+
     	if (v == this.max)
     		return this.buckets-1;
     	else if (this.min <= v && v < this.max)
@@ -106,6 +108,9 @@ public class IntHistogram {
      * @return Predicted selectivity of this particular operator and value
      */
     public double estimateSelectivity(Predicate.Op op, int v) {
+    	//System.out.println("IntHistgoram.estimateSelectivity");
+    	//System.out.println(this.toString());
+    	
     	int index = getBinIndex(v);
     	//System.out.println("index of value " + v + " : " + index);
     	double b_f;
@@ -121,10 +126,15 @@ public class IntHistogram {
     			return 1.0;
     		
     		
-    		if (op == op.EQUALS)
-    			return (double) (this.hist.get(index) / this.binSize) / this.ntups;
+    		if (op == op.EQUALS) {
+    			System.out.println("returning " + this.hist.get(index) + " / " + this.ntups + " = " + (double) (this.hist.get(index)) / this.ntups);
+    			//return (double) (this.hist.get(index) / this.binSize) / this.ntups;
+    			return (double) (this.hist.get(index)) / this.ntups;
+    			
+    		}
     		else
-    			return 1 - (double) (this.hist.get(index) / this.binSize) / this.ntups;
+    			//return 1 - (double) (this.hist.get(index) / this.binSize) / this.ntups;
+    			return 1 - (double) (this.hist.get(index)) / this.ntups;
     	}
     	
     	// I don't think equality makes any difference here?
@@ -146,6 +156,15 @@ public class IntHistogram {
 	    		selectivity += b_f * b_part;
 	    		//System.out.println("selectivity at the bucket: " + selectivity);
     		}
+    		
+    		//some additional edge cases
+    		if (v == this.min && op == Op.LESS_THAN) //although index would be 0, < this.min would not return any
+    			return 0.0;
+    		if (v == this.max && op == Op.GREATER_THAN) //although last index would be returned, > this.max would not return any
+    			return 1.0;
+    		
+    		
+    		
     		
     		if (op == Op.GREATER_THAN || op == Op.GREATER_THAN_OR_EQ) {
     			if (index == -1) //if value is smaller than min, all values are greater than that
@@ -201,7 +220,7 @@ public class IntHistogram {
      * @return A string describing this histogram, for debugging purposes
      */
     public String toString() {
-    	String out = "";
+    	String out = "\nntups: " + String.valueOf(this.ntups) + "\n";
     	for (int i=0; i<this.buckets; i++) {
     		out +=	String.valueOf(this.min + i * this.binSize) + "~" + 
     				String.valueOf(this.min + (i+1) * this.binSize) + " -> " + String.valueOf(this.hist.get(i)) + "\n";

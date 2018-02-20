@@ -26,6 +26,14 @@ public class TableStats {
     private ArrayList<IntHistogram> intHists;
     private ArrayList<StringHistogram> stringHists;
     
+    private TupleDesc td;
+    //this is needed so that when you want to get field 5, for example,
+    //you know which index in one of the histograms to look for
+    //e.g. we would know whether the field is int or string,
+    //if the field is int, what index should we look for in intHists? (say 2)
+    //so this would store 0, 0, 1, 2, 1, for example, for int0, str0, str1, str2, str1
+    private ArrayList<Integer> histIndices;
+    
     
     public static TableStats getTableStats(String tablename) {
         return statsMap.get(tablename);
@@ -99,12 +107,14 @@ public class TableStats {
     	//first, need to initialize HeapFile for tableid
     	HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(tableid);
     	TupleDesc td = Database.getCatalog().getTupleDesc(tableid);
+    	this.td = td;
     	Iterator<TDItem> it = td.iterator(); //each TDItem has .fieldName and .fieldType
     	
     	//will probably need to build a histogram (either Int or String) for each column
     	//StringHistogram is based on IntHistogram, and I think the sizes are the same
     	this.intHists = new ArrayList<IntHistogram>();
     	this.stringHists = new ArrayList<StringHistogram>();
+    	this.histIndices = new ArrayList<Integer>();
     	
     	//Step 1. First scan of table. to find min and max of each integer column    	
     	int intMinMax[] = new int[2*td.numFields()]; //will store min and max
@@ -171,6 +181,7 @@ public class TableStats {
     	
     	
     	//Step 3. Second scan: addValue() for each Hist that is empty up to this point
+    	//also update histindices for convenience
     	//reinitialize dbit, and open
     	dbit = hf.iterator(new TransactionId());
     	try {
@@ -192,6 +203,7 @@ public class TableStats {
 						IntField f = (IntField) tup.getField(i);
 						int val = f.getValue(); 
 						intHists.get(intindex).addValue(val);
+						this.histIndices.add(intindex);
 						intindex++;
 					}
 					else {
@@ -199,6 +211,7 @@ public class TableStats {
 						StringField f = (StringField) tup.getField(i);
 						String val = f.getValue();
 						stringHists.get(stringindex).addValue(val);
+						this.histIndices.add(stringindex);
 						stringindex++;
 					}
 				}
@@ -212,7 +225,7 @@ public class TableStats {
     	
 		
 		//Step 4. now, based on the histograms, need to calculate table statistics 
-		
+		// -> or is this step even needed? IntHistogram already has estimateSelectivity
 		
     }
 
@@ -277,7 +290,20 @@ public class TableStats {
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
         // some code goes here
-        return 1.0;
+    	//for example for int0, int1, str1, int2, int3, str2, str3
+    	//we have 0, 1, 1, 2, 3, 2, 3 for histIndices
+    	//so getting field 4(int2) -> index 2 from IntHistogram
+    	int index = this.histIndices.get(field);
+    	
+    	if (this.td.getFieldType(field) == Type.INT_TYPE) {
+    		int val = ((IntField) constant).getValue();
+    		return this.intHists.get(index).estimateSelectivity(op, val);
+    	}
+    	else {
+    		String val = ((StringField) constant).getValue();
+    		return this.stringHists.get(index).estimateSelectivity(op, val);    		
+    	}
+
     }
 
     /**
