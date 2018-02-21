@@ -279,7 +279,7 @@ public class JoinOptimizer {
 	    			
 	    			
 	    			//convert Set to Vector, to use enumerateSubsets again
-	    			subvector = new Vector(s);
+	    			//subvector = new Vector(s);
 	    			//line 5. for s' in {all length d-1 subsets of s}
 	    			//setOfsprime = enumerateSubsets(subvector, i-1);
 	    			
