@@ -1,0 +1,17 @@
+Describe any design decisions you made, including methods for selectivity estimation,
+join ordering, as well as any of the bonus exercises you chose to implement and how
+you implemented them (for each bonus exercise you may submit up to 1 additional page).
+
+
+Discuss and justify any changes you made to the API.
+There were no changes to the API, we did not deem them necessary.
+
+Describe any missing or incomplete elements of your code.
+There are not missing elements in the code; all tests pass properly.
+
+Describe how you and your partner split the work. 
+Like all the previous labs, communication was pivotal in making this successful. Because we could not sit down and code together for the entirety of the lab, we would constantly update each other whenever any update in the code was pushed. Because the number of exercises was lower than before, we went through the lab together, picking up where the other partner left off and leaving extensive explanations when doing so. 
+
+Describe how long you spent on the lab, and whether there was anything
+you found particularly difficult or confusing.
+We each spent about 8 hours in the lab. The last few tests, bigOrderJoinTest and nonEqualityTest were especially difficult to debug.
