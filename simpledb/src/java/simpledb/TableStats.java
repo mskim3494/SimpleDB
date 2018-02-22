@@ -108,45 +108,44 @@ public class TableStats {
         // in a single scan of the table.
         // some code goes here
     	
-    	this.ioCostPerPage = ioCostPerPage;
-    	
-    	//first, need to initialize HeapFile for tableid
-    	HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(tableid);
-    	this.hf = hf;
-    	TupleDesc td = Database.getCatalog().getTupleDesc(tableid);
-    	this.td = td;
-    	Iterator<TDItem> it = td.iterator(); //each TDItem has .fieldName and .fieldType
-    	
-    	//will probably need to build a histogram (either Int or String) for each column
-    	//StringHistogram is based on IntHistogram, and I think the sizes are the same
-    	this.intHists = new ArrayList<IntHistogram>();
-    	this.stringHists = new ArrayList<StringHistogram>();
-    	this.histIndices = new ArrayList<Integer>();
-    	
-    	//Step 1. First scan of table. to find min and max of each integer column    	
-    	int intMinMax[] = new int[2*td.numFields()]; //will store min and max
-    	int intindex = 0;
-    	int counter = 0; //to distinguish first tuple from all the rest
-    	
-    	//initialize & open dbit.
-    	DbFileIterator dbit = hf.iterator(new TransactionId());
-    	try {
-			dbit.open();
-		} catch (DbException | TransactionAbortedException e) {
-			e.printStackTrace();
-		}
-
-    	
-    	try {
+	    	this.ioCostPerPage = ioCostPerPage;
+	    	
+	    	//first, need to initialize HeapFile for tableid
+	    	HeapFile hf = (HeapFile) Database.getCatalog().getDatabaseFile(tableid);
+	    	this.hf = hf;
+	    	TupleDesc td = Database.getCatalog().getTupleDesc(tableid);
+	    	this.td = td;
+	    	Iterator<TDItem> it = td.iterator(); //each TDItem has .fieldName and .fieldType
+	    	
+	    	//will probably need to build a histogram (either Int or String) for each column
+	    	//StringHistogram is based on IntHistogram, and I think the sizes are the same
+	    	this.intHists = new ArrayList<IntHistogram>();
+	    	this.stringHists = new ArrayList<StringHistogram>();
+	    	this.histIndices = new ArrayList<Integer>();
+	    	
+	    	//Step 1. First scan of table. to find min and max of each integer column    	
+	    	int intMinMax[] = new int[2*td.numFields()]; //will store min and max
+	    	int intindex = 0;
+	    	int counter = 0; //to distinguish first tuple from all the rest
+	    	
+	    	//initialize & open dbit.
+	    	DbFileIterator dbit = hf.iterator(new TransactionId());
+	    	try {
+				dbit.open();
+			} catch (DbException | TransactionAbortedException e) {
+				e.printStackTrace();
+			}
+	
+	    	
+	    	try {
 			while (dbit.hasNext()) { //for each tuple
+				
 				Tuple tup = dbit.next();
 				
 				for (int i=0; i<td.numFields(); i++) { //for each attribute
-					
 					if (td.getFieldType(i) == Type.INT_TYPE) { 
 						IntField f = (IntField) tup.getField(i);
 						int val = f.getValue();
-						
 						if (counter == 0) { //for the first read, set this column's min and max both as val
 							intMinMax[2*intindex] = val; //for min for this column
 							intMinMax[2*intindex + 1] = val; //for max for this column
@@ -164,79 +163,80 @@ public class TableStats {
 						//no need to get min max stringval, because
 						//in StringHistogram they just set "" and "zzzz" converted to integer as min and max
 					}
-
 				}
-				
 				intindex=0; //after one tuple read, reset this.
 				counter++; //also update row counter
 			}
 		} catch (NoSuchElementException | DbException | TransactionAbortedException e) {
-			e.printStackTrace();
+				e.printStackTrace();
 		}
-    	dbit.close();
-    	this.ntups = counter;
-    	
-    	
-    	
-    	//Step 2. initialize Histograms for each column
-    	intindex = 0;
-    	for (int i=0; i<td.numFields(); i++) {
-    		if (td.getFieldType(i) == Type.INT_TYPE) {
-    			intHists.add(new IntHistogram(NUM_HIST_BINS, intMinMax[2*intindex], intMinMax[2*intindex+1]));
-    			intindex++;
-    		}
-    		else
-    			stringHists.add(new StringHistogram(NUM_HIST_BINS)); //min, max val already set as default
-    	}
-    	
-    	
-    	//Step 3. Second scan: addValue() for each Hist that is empty up to this point
-    	//also update histindices for convenience
-    	//reinitialize dbit, and open
-    	dbit = hf.iterator(new TransactionId());
-    	try {
-			dbit.open();
-		} catch (DbException | TransactionAbortedException e) {
-			e.printStackTrace();
-		} 
-    	
-    	intindex = 0;
-    	int stringindex = 0; //this time, we also need to locate stringHistogram correctly
-    	
-		try {
-			while (dbit.hasNext()) { //for each tuple
-				Tuple tup = dbit.next();
-				
-				for (int i=0; i<td.numFields(); i++) { //for each attribute
-					if (td.getFieldType(i) == Type.INT_TYPE) { //int 
-						//get integer value and add it to histogram
-						IntField f = (IntField) tup.getField(i);
-						int val = f.getValue(); 
-						intHists.get(intindex).addValue(val);
-						this.histIndices.add(intindex);
-						intindex++;
+	    	dbit.close();
+	    	this.ntups = counter;
+	    	
+	    	
+	    	
+	    	//Step 2. initialize Histograms for each column
+	    	intindex = 0;
+	    	for (int i=0; i<td.numFields(); i++) {
+	    		if (td.getFieldType(i) == Type.INT_TYPE) {
+	    			intHists.add(new IntHistogram(NUM_HIST_BINS, intMinMax[2*intindex], 
+	    					intMinMax[2*intindex+1]));
+	    			intindex++;
+	    		}
+	    		else {
+	    			stringHists.add(new StringHistogram(NUM_HIST_BINS)); 
+	    			//min, max val already set as default
+	    		}
+	    	}
+	    	
+	    	
+	    	//Step 3. Second scan: addValue() for each Hist that is empty up to this point
+	    	//also update histindices for convenience
+	    	//reinitialize dbit, and open
+	    	dbit = hf.iterator(new TransactionId());
+	    	try {
+				dbit.open();
+			} catch (DbException | TransactionAbortedException e) {
+				e.printStackTrace();
+			} 
+	    	
+		    	intindex = 0;
+		    	int stringindex = 0; //this time, we also need to locate stringHistogram correctly
+	    	
+			try {
+				while (dbit.hasNext()) { //for each tuple
+					Tuple tup = dbit.next();
+					
+					for (int i=0; i<td.numFields(); i++) { //for each attribute
+						if (td.getFieldType(i) == Type.INT_TYPE) { //int 
+							//get integer value and add it to histogram
+							IntField f = (IntField) tup.getField(i);
+							int val = f.getValue(); 
+							intHists.get(intindex).addValue(val);
+							this.histIndices.add(intindex);
+							intindex++;
+						}
+						else {
+							//get string value and add it to histogram
+							StringField f = (StringField) tup.getField(i);
+							String val = f.getValue();
+							stringHists.get(stringindex).addValue(val);
+							this.histIndices.add(stringindex);
+							stringindex++;
+						}
 					}
-					else {
-						//get string value and add it to histogram
-						StringField f = (StringField) tup.getField(i);
-						String val = f.getValue();
-						stringHists.get(stringindex).addValue(val);
-						this.histIndices.add(stringindex);
-						stringindex++;
-					}
+					
+					intindex = 0;
+					stringindex = 0; //after one tuple read, reset these
 				}
-				
-				intindex = 0;
-				stringindex = 0; //after one tuple read, reset these
+			} catch (NoSuchElementException | DbException | TransactionAbortedException e) {
+				e.printStackTrace();
 			}
-		} catch (NoSuchElementException | DbException | TransactionAbortedException e) {
-			e.printStackTrace();
-		}
-    	
-		
-		//Step 4. now, based on the histograms, need to calculate table statistics 
-		// -> or is this step even needed? IntHistogram already has estimateSelectivity
-		
+	    	
+			
+			//Step 4. now, based on the histograms, need to calculate table statistics 
+			// -> or is this step even needed? IntHistogram already has estimateSelectivity
+			
     }
 
     /**
@@ -253,8 +253,7 @@ public class TableStats {
      */
     public double estimateScanCost() {
         // some code goes here
-    	return this.hf.numPages() * this.ioCostPerPage;
-        //return 0;
+    		return this.hf.numPages() * this.ioCostPerPage;
     }
 
     /**
@@ -268,8 +267,7 @@ public class TableStats {
      */
     public int estimateTableCardinality(double selectivityFactor) {
         // some code goes here
-    	return (int) (this.ntups * selectivityFactor);
-        //return 0;
+    		return (int) (this.ntups * selectivityFactor);
     }
 
     /**
@@ -302,19 +300,19 @@ public class TableStats {
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
         // some code goes here
-    	//for example for int0, int1, str1, int2, int3, str2, str3
-    	//we have 0, 1, 1, 2, 3, 2, 3 for histIndices
-    	//so getting field 4(int2) -> index 2 from IntHistogram
-    	int index = this.histIndices.get(field);
-    	
-    	if (this.td.getFieldType(field) == Type.INT_TYPE) {
-    		int val = ((IntField) constant).getValue();
-    		return this.intHists.get(index).estimateSelectivity(op, val);
-    	}
-    	else {
-    		String val = ((StringField) constant).getValue();
-    		return this.stringHists.get(index).estimateSelectivity(op, val);    		
-    	}
+	    	//for example for int0, int1, str1, int2, int3, str2, str3
+	    	//we have 0, 1, 1, 2, 3, 2, 3 for histIndices
+	    	//so getting field 4(int2) -> index 2 from IntHistogram
+	    	int index = this.histIndices.get(field);
+	    	
+	    	if (this.td.getFieldType(field) == Type.INT_TYPE) {
+	    		int val = ((IntField) constant).getValue();
+	    		return this.intHists.get(index).estimateSelectivity(op, val);
+	    	}
+	    	else {
+	    		String val = ((StringField) constant).getValue();
+	    		return this.stringHists.get(index).estimateSelectivity(op, val);    		
+	    	}
 
     }
 
@@ -323,7 +321,7 @@ public class TableStats {
      * */
     public int totalTuples() {
         // some code goes here
-        return 0;
+        return this.ntups;
     }
 
 }

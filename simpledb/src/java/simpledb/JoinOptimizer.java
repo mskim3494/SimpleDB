@@ -114,17 +114,10 @@ public class JoinOptimizer {
             // a join algorithm that's more complicated than a basic
             // nested-loops join.
         	
-        	// will implement this based on the following formula provided
-        	//joincost(t1 join t2) = scancost(t1) + ntups(t1) x scancost(t2) //IO cost
+	        	// will implement this based on the following formula provided
+	        	//joincost(t1 join t2) = scancost(t1) + ntups(t1) x scancost(t2) //IO cost
             //        + ntups(t1) x ntups(t2)  //CPU cost
-        	
-        	//System.out.println("joincost estimated, card1, cost1, card2, cost2: " + card1 + " " + cost1 + " " + card2 + " " + cost2);
-        	
-        	return cost1 + (card1 * cost2) + (card1 * card2);
-        	
-        	
-        	
-            //return -1.0;
+        		return cost1 + (card1 * cost2) + (card1 * card2);
         }
     }
 
@@ -178,7 +171,7 @@ public class JoinOptimizer {
         if (joinOp == Op.EQUALS) {
         	//with one of the 2 attributes being primary key
 	        	if (t1pkey || t2pkey) {
-	        		//try to pick the cardinality of where the join attr is the primary key (smaller of the two? maybe?)
+	        		//pick the smaller cardinality smaller if both are primary
 	        		if(t1pkey && t2pkey)
 	        			return card1 > card2 ? card2 : card1;
 	        		if (t1pkey)
@@ -188,16 +181,14 @@ public class JoinOptimizer {
 	        	}
 	        	//with non being a primary key
 	        	else {
-	        		//return (int)(card1*card2*0.3); //just estimate that 0.3 of the cross product would be selected
 	        		return (int)(card1*card2*0.01); //reduce, because join cost reaches above max int
 	        	}
         }
         //for range scans
         else {
-        		//return (int)(card1*card2*0.5); //according to instruction this should be larger than the cardinality for equality with no primary key
         		return (int)(card1*card2*0.015); //again, for the same reason, smaller but larger than for the case above
         }
-        // shouldnt get here
+        // shouldn't get here
         return card <= 0 ? 1 : card;
     }
 
@@ -264,16 +255,8 @@ public class JoinOptimizer {
     	
 	    	//line 1. j = set of join nodes  
 	    	//-> this.joins is the set(Vector)  of join nodes. so already prepared
-    	
 	    	//initialize variables that would be used in the inner loop
-	    	Set<Set<LogicalJoinNode>> setOfs;
-//	    	Vector<LogicalJoinNode> subvector;
-//	    	Set<LogicalJoinNode> setOfsprime;
-//	    	Set<LogicalJoinNode> joinToRemoveSet;
-//	    	Iterator<LogicalJoinNode> it;
-//	    	LogicalJoinNode joinToRemove;
-//	    	Set<LogicalJoinNode> joinSet;
-	
+	    	Set<Set<LogicalJoinNode>> setOfs;	
 	    PlanCache pc = new PlanCache();
 	        
 	    	//line 2. for (i in 1...|j|):
@@ -281,15 +264,6 @@ public class JoinOptimizer {
 	    		//line 3. for s in {all length i subsets of j}
 	    		setOfs = enumerateSubsets(this.joins, i);
 	    		for (Set<LogicalJoinNode> s : setOfs) { //for each subset in setOfSubsets (this is s)
-	    			
-	    			
-	    			//convert Set to Vector, to use enumerateSubsets again
-	    			//subvector = new Vector(s);
-	    			//line 5. for s' in {all length d-1 subsets of s}
-	    			//setOfsprime = enumerateSubsets(subvector, i-1);
-	    			
-	    			//int counter = 0; //to distinguish btw first s' and the rest
-	    			
 	    			//line 4. bestPlan = {} 
 	    	        //to keep track of best s' & s-s' separation in the inner loop
 	    	        CostCard bestcc = new CostCard();
@@ -297,69 +271,32 @@ public class JoinOptimizer {
 	    	        bestcc.plan = null;
 	    	        bestcc.cost = Double.MAX_VALUE;
 	    	        bestcc.card = 0;
-	    	        //Set<LogicalJoinNode> bestJoinToRemoveSet = null;
-	    			//double bestCostSoFar = 99999999.0;
+
 	    			// line 5. for s' in {all length d-1 subsets of s}
 	    			for (LogicalJoinNode sprime : s) { //for each s'
 	    				
-	    				//line 6-8: done by computeCostAndCardOfSubplan
-//	    				joinToRemoveSet = new HashSet<LogicalJoinNode>(s);
-//	    				joinToRemoveSet.removeAll(sprime); //s - s'. set difference operation
-//	    				it = joinToRemoveSet.iterator(); //iterator needed to get the element in this one-element set s-s'
-//	    				joinToRemove = it.next(); //next would get the one and only node in s-s'
-//	                    joinSet = sprime;
-	
-	        			CostCard cc = computeCostAndCardOfSubplan(stats, filterSelectivities, sprime, s, bestcc.cost, pc);
-	        			
-	        			//System.out.println(bestcc.cost);
-	        			//if(cc!= null) System.out.println(cc.cost);
+	    				//line 6-8: done by computeCostAndCardOfSubplan	
+	        			CostCard cc = computeCostAndCardOfSubplan(
+	        					stats, filterSelectivities, sprime, s, bestcc.cost, pc);
+
 	        			//line 8: if (cost(plan) < cost(bestPlan))
-	        			if (cc != null && cc.cost < bestcc.cost) { //the first one should be considered best no matter what (counter==0)
+	        			if (cc != null && cc.cost < bestcc.cost) { 
 	        				bestcc = cc;
-	        				//System.out.println("for size: " + i + "s: " + s + " s': " + sprime);
-	        				//if(sprime.t2Alias == "bigTable")
-	        				//	System.out.println(cc.cost);
-	        				//bestCostSoFar = bestcc.cost;
-	        				//bestJoinToRemoveSet = joinToRemoveSet;
-		    				
-			    			//System.out.println("new bestplan found: " + bestcc.cost + " " + bestcc.card + " " + bestcc.plan);
 	        			}
-	        			
-	        			//counter++;
 	    			}
 	    			//after considering each s' and s-s', we've identified the best one in terms of minimal cost
 	    			if (bestcc.plan != null) {
-	    				//System.out.println("new bestplan added: " + bestcc.cost + " " + bestcc.card + " " + bestcc.plan);
 		    			pc.addPlan(s, bestcc.cost, bestcc.card, bestcc.plan);
 	    			}
-	    			//System.out.println(s.toString());
 	    		}
 	    		
 	    	}
-	    	
-	        //Replace the following
-	        //return joins;
+
 	    	//convert a vector of all nodes to a set of all nodes
 	    	Set<LogicalJoinNode> setOfAllNodes = new HashSet<LogicalJoinNode>(this.joins);
 	    	//this returns the required vector of LogicalJoinNodes. in correct best order
 	    	Vector<LogicalJoinNode> ret = pc.getOrder(setOfAllNodes);
-	    	
-	        //for (int i = 0; i < ret.size(); i++) {
-	        //	System.out.println("in orderjoins: result " + i + " : " + ret.get(i) + " t1, t2Alias: " + ret.get(i).t1Alias + " " + ret.get(i).t2Alias);
-	        //}
-	    	
-	        /*
-	        Vector<LogicalJoinNode> pathSoFar = new Vector<LogicalJoinNode>();
-	        int counter = 0; //vector doesn't preserve add order, so explicitly try to specify indices
-	        for (LogicalJoinNode j : ret) { //but this works..
-	            pathSoFar.add(counter, j);
-	            System.out.println(j + " added in counter " + counter);
-	            counter++;
-	            
-	        }
-	        System.out.println("pathSoFar to be returned: " + pathSoFar);
-	        */
-	        
+
 	    	if(explain)
 	    		printJoins(ret, pc, stats, filterSelectivities);
 	    	return ret; 
