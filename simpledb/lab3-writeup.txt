@@ -1,17 +1,33 @@
-Describe any design decisions you made, including methods for selectivity estimation,
+1. Describe any design decisions you made, including methods for selectivity estimation,
 join ordering, as well as any of the bonus exercises you chose to implement and how
 you implemented them (for each bonus exercise you may submit up to 1 additional page).
 
+Most required functions were implemented as suggested by the instructions & pseudocode in lab3.md
+One deviation from the instructions was that while section 2.2.4. Join Cardinality suggested 30% of the cross product as the
+estimate for an unknown join, we drastically reduced this proportion to 1% and 1.5% each. (equality with no primary key & range scans)
+This was because for bigOrderJoinsTest, the estimated cardinality went extremely high, exceeding the storage limit for an int variable
+and thus distorting the correct calculation for the best join order. Reducing these proportions still keeps the smaller size of 'equality with no primary key' case compared to the 'range scans' case, and, since these proportions are uniformly applied to any joins being considered, 
+the correct order of joins with the minimum total cost can be calculated.
 
-Discuss and justify any changes you made to the API.
+For initializing the TableStats class, we created an arraylist of histograms for each type (int and string.)
+Step 1 was scanning through each tuple in the table and finding the min and max of each integer attribute (for string attribute this wasn't needed,
+as stringHistogram already set its default min and max). Step 2 was initializing each histogram class and inserting to the arraylists,
+and Step 3 was doing a second scan of the table in order to update the histograms in the arraylists.
+Because each column would be accessed by the column number but we had to use two separate arraylist of histograms,
+we also created an arraylist called histIndices, so that each column would find its correct histogram in one of the two histogram arraylists.
+For example, if the table consisted of int1, int2, str1, str2, str3, int3,
+histIndices would store 1, 2, 1, 2, 3, 3. To access attribute number 3 (str1), our code just has to retrieve value '1' from histIndices.get(2),
+and we can correctly retrieve the first histogram from stringHists, since the type of the attribute would also be provided along with the column number.
+
+2. Discuss and justify any changes you made to the API.
 There were no changes to the API, we did not deem them necessary.
 
-Describe any missing or incomplete elements of your code.
+3. Describe any missing or incomplete elements of your code.
 There are not missing elements in the code; all tests pass properly.
 
-Describe how you and your partner split the work. 
+4. Describe how you and your partner split the work. 
 Like all the previous labs, communication was pivotal in making this successful. Because we could not sit down and code together for the entirety of the lab, we would constantly update each other whenever any update in the code was pushed. Because the number of exercises was lower than before, we went through the lab together, picking up where the other partner left off and leaving extensive explanations when doing so. 
 
-Describe how long you spent on the lab, and whether there was anything
+5. Describe how long you spent on the lab, and whether there was anything
 you found particularly difficult or confusing.
 We each spent about 8 hours in the lab. The last few tests, bigOrderJoinTest and nonEqualityTest were especially difficult to debug.
